@@ -15,17 +15,19 @@
 		"codegen": "graphql-codegen --config codegen.ts && node scripts/patchGeneratedTypes.js && node scripts/createSchemaExport.js"
 	},
 	"type": "module",
-	"main": "./dist/index.js",
-	"svelte": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
-		"./graphql": {
-			"types": "./dist/graphql.d.ts",
-			"import": "./dist/graphql.js"
+		"./client": {
+			"types": "./dist/client.d.ts",
+			"svelte": "./dist/client.js"
+		},
+		"./server": {
+			"types": "./dist/server.d.ts",
+			"import": "./dist/server.js"
 		}
 	},
 	"typesVersions": {
@@ -33,8 +35,11 @@
 			"index.d.ts": [
 				"dist/index.d.ts"
 			],
-			"graphql": [
-				"dist/graphql.d.ts"
+			"client": [
+				"dist/client.d.ts"
+			],
+			"server": [
+				"dist/server.d.ts"
 			]
 		}
 	},
@@ -82,6 +87,9 @@
 	},
 	"dependencies": {
 		"graphql": "^16.8.1",
+		"lucide-svelte": "^0.292.0",
+		"pp-svelte-components": "^0.0.33",
+		"tailwind-merge": "^2.0.0",
 		"type-fest": "^4.8.2"
 	}
 }

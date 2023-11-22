@@ -1,6 +1,6 @@
-import { Invite } from './types/Invite.js';
-import { CohortMember } from './types/CohortMember.js';
-import { UnexpectedError } from './errors.js';
+import type { Invite } from '../types/Invite.js';
+import type { CohortMember } from '../types/CohortMember.js';
+import type { UnexpectedError } from './errors.js';
 
 export type CohortAdapter = {
 	/**

@@ -1,4 +1,4 @@
-import { CohortInviteMemberError as GQLInviteMemberError } from './graphql/generated.js';
+import type { CohortInviteMemberError as GQLInviteMemberError } from './graphql/generated.js';
 
 export class UnexpectedError extends Error {
 	constructor(message: string, cause?: unknown) {

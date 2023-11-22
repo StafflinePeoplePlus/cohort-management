@@ -1,4 +1,4 @@
-import { CohortAdapter } from '../adapter.js';
+import type { CohortAdapter } from '../adapter.js';
 import {
 	MemberAlreadyInvitedError,
 	InviteMemberError,
@@ -6,7 +6,7 @@ import {
 	UnexpectedError,
 	MemberAlreadySignedUpError
 } from '../errors.js';
-import { Resolvers } from './generated.js';
+import type { Resolvers } from './generated.js';
 
 export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 	Mutation: {
