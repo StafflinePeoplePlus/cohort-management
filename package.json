@@ -1,50 +1,86 @@
 {
-    "name": "@peopleplus/cohort-management",
-    "version": "0.0.1",
-    "description": "Cohort Management GraphQL module and UI",
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js"
-        },
-        "./graphql": {
-            "types": "./dist/graphql.d.ts",
-            "import": "./dist/graphql.js"
-        }
-    },
-    "types": "./dist/index.d.ts",
-    "typesVersions": {
-        "*": {
-            "index.d.ts": [
-                "dist/index.d.ts"
-            ],
-            "graphql": [
-                "dist/graphql.d.ts"
-            ]
-        }
-    },
-    "scripts": {
-        "build": "tsc",
-        "codegen": "graphql-codegen --config codegen.ts && node scripts/patchGeneratedTypes.js && node scripts/createSchemaExport.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/StafflinePeoplePlus/cohort-management.git"
-    },
-    "author": "James Birtles <james.birtles@peopleplus.co.uk>",
-    "bugs": {
-        "url": "https://github.com/StafflinePeoplePlus/cohort-management/issues"
-    },
-    "homepage": "https://github.com/StafflinePeoplePlus/cohort-management#readme",
-    "devDependencies": {
-        "@graphql-codegen/cli": "5.0.0",
-        "@graphql-codegen/typescript": "4.0.1",
-        "@graphql-codegen/typescript-resolvers": "4.0.1",
-        "typescript": "^5.3.2"
-    },
-    "dependencies": {
-        "graphql": "^16.8.1",
-        "type-fest": "^4.8.2"
-    }
+	"name": "cohort-management",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build && npm run package",
+		"preview": "vite preview",
+		"package": "svelte-kit sync && svelte-package && publint",
+		"prepublishOnly": "npm run package",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test": "vitest",
+		"lint": "prettier --check . && eslint .",
+		"format": "prettier --write .",
+		"codegen": "graphql-codegen --config codegen.ts && node scripts/patchGeneratedTypes.js && node scripts/createSchemaExport.js"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"svelte": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./graphql": {
+			"types": "./dist/graphql.d.ts",
+			"import": "./dist/graphql.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"index.d.ts": [
+				"dist/index.d.ts"
+			],
+			"graphql": [
+				"dist/graphql.d.ts"
+			]
+		}
+	},
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*",
+		"schema.graphql",
+		"defaults.graphql"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/StafflinePeoplePlus/cohort-management.git"
+	},
+	"author": "James Birtles <james.birtles@peopleplus.co.uk>",
+	"bugs": {
+		"url": "https://github.com/StafflinePeoplePlus/cohort-management/issues"
+	},
+	"homepage": "https://github.com/StafflinePeoplePlus/cohort-management#readme",
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"devDependencies": {
+		"@graphql-codegen/cli": "5.0.0",
+		"@graphql-codegen/typescript": "4.0.1",
+		"@graphql-codegen/typescript-resolvers": "4.0.1",
+		"@sveltejs/adapter-auto": "^2.0.0",
+		"@sveltejs/kit": "^1.27.4",
+		"@sveltejs/package": "^2.2.2",
+		"@typescript-eslint/eslint-plugin": "^6.0.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"eslint": "^8.28.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-svelte": "^2.30.0",
+		"prettier": "^3.1.0",
+		"prettier-plugin-svelte": "^3.1.1",
+		"publint": "^0.2.5",
+		"svelte": "^4.0.5",
+		"svelte-check": "^3.6.0",
+		"tslib": "^2.4.1",
+		"typescript": "^5.3.2",
+		"vite": "^4.4.2",
+		"vitest": "^0.34.0"
+	},
+	"dependencies": {
+		"graphql": "^16.8.1",
+		"type-fest": "^4.8.2"
+	}
 }

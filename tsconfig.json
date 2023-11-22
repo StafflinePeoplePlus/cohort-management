@@ -1,20 +1,16 @@
 {
-    "compilerOptions": {
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "target": "es2022",
-        "allowJs": true,
-        "resolveJsonModule": true,
-        "moduleDetection": "force",
-        "isolatedModules": true,
-        "strict": true,
-        "noUncheckedIndexedAccess": true,
-        "moduleResolution": "NodeNext",
-        "module": "NodeNext",
-        "outDir": "dist",
-        "sourceMap": true,
-        "declaration": true,
-        "lib": ["es2022"]
-    },
-    "include": ["src/**/*.ts"]
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true
+		// TODO: fix once https://github.com/sveltejs/kit/issues/11086 is resolved
+		// "module": "NodeNext",
+		// "moduleResolution": "NodeNext",
+	}
 }
