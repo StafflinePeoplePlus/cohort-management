@@ -1,4 +1,4 @@
-import { Opaque } from 'type-fest';
+import type { Opaque } from 'type-fest';
 
 type PlainMember = { id: string };
 export type CohortMember = Opaque<PlainMember, 'CohortMember'>;

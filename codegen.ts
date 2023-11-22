@@ -5,7 +5,15 @@ const config: CodegenConfig = {
 	schema: ['./schema.graphql', './defaults.graphql'],
 	generates: {
 		'src/lib/graphql/generated.ts': {
-			plugins: ['typescript', 'typescript-resolvers'],
+			plugins: [
+				{
+					add: {
+						content: `/* eslint-disable */`
+					}
+				},
+				'typescript',
+				'typescript-resolvers'
+			],
 			config: {
 				useTypeImports: true,
 				enumsAsTypes: true,
