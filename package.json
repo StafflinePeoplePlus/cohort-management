@@ -1,0 +1,50 @@
+{
+    "name": "@peopleplus/cohort-management",
+    "version": "0.0.1",
+    "description": "Cohort Management GraphQL module and UI",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./graphql": {
+            "types": "./dist/graphql.d.ts",
+            "import": "./dist/graphql.js"
+        }
+    },
+    "types": "./dist/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "index.d.ts": [
+                "dist/index.d.ts"
+            ],
+            "graphql": [
+                "dist/graphql.d.ts"
+            ]
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "codegen": "graphql-codegen --config codegen.ts && node scripts/patchGeneratedTypes.js && node scripts/createSchemaExport.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/StafflinePeoplePlus/cohort-management.git"
+    },
+    "author": "James Birtles <james.birtles@peopleplus.co.uk>",
+    "bugs": {
+        "url": "https://github.com/StafflinePeoplePlus/cohort-management/issues"
+    },
+    "homepage": "https://github.com/StafflinePeoplePlus/cohort-management#readme",
+    "devDependencies": {
+        "@graphql-codegen/cli": "5.0.0",
+        "@graphql-codegen/typescript": "4.0.1",
+        "@graphql-codegen/typescript-resolvers": "4.0.1",
+        "typescript": "^5.3.2"
+    },
+    "dependencies": {
+        "graphql": "^16.8.1",
+        "type-fest": "^4.8.2"
+    }
+}

@@ -1,0 +1,6 @@
+type CohortMemberMetadataInput {
+    """
+    There is no metadata defined for this type, this dummy field is here just to satisfy graphql.
+    """
+    _empty: String
+}
