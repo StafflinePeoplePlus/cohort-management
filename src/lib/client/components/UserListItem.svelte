@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { MoreHorizontalIcon } from 'lucide-svelte';
-	import { Avatar, Button, Typography } from 'pp-svelte-components';
+	import {
+		Avatar,
+		Button,
+		Typography,
+		DropdownMenu,
+		createDropdownMenu
+	} from 'pp-svelte-components';
 	import { twMerge } from 'tailwind-merge';
 
 	let className: string | undefined = undefined;
@@ -9,6 +15,8 @@
 	export let name: string;
 	export let email: string;
 	export let avatar: string | undefined = undefined;
+
+	const { trigger, menu } = createDropdownMenu();
 </script>
 
 <div
@@ -24,7 +32,14 @@
 			<Typography variant="caption">{email}</Typography>
 		</div>
 	</a>
-	<Button variant="secondary" icon class="h-8 w-8">
-		<MoreHorizontalIcon />
-	</Button>
+	{#if $$slots.actions}
+		<Button variant="secondary" icon class="h-8 w-8" use={[trigger]}>
+			<MoreHorizontalIcon aria-hidden="true" />
+			<span class="sr-only">View Actions</span>
+		</Button>
+	{/if}
 </div>
+
+{#if $$slots.actions}
+	<DropdownMenu {menu}><slot name="actions" /></DropdownMenu>
+{/if}
