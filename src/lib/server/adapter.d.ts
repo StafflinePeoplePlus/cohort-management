@@ -23,13 +23,21 @@ export type CohortAdapter = {
 	 */
 	sendInvite(invite: Invite): Promise<void>;
 	/**
+	 * Revokes an invite that has been sent out but has not yet been accepted.
+	 *
+	 * You may choose to delete the invite from the database, or simply mark it as revoked.
+	 */
+	revokeInvite(invite: Invite): Promise<void>;
+	/**
 	 * Returns the number of invites that have been sent out but have not yet been accepted.
 	 */
 	countInvites(): Promise<number>;
 	/**
-	 * Returns a list of all invites that have been sent out but have not yet been accepted.
+	 * Returns a list of all invites that have been sent out but have not yet been accepted or
+	 * revoked.
 	 */
 	listInvites(): Promise<Invite[]>;
+	findInviteByID(id: string): Promise<Invite | undefined>;
 	findInviteByEmail(email: string): Promise<Invite | undefined>;
 	findMemberByEmail(email: string): Promise<CohortMember | undefined>;
 };

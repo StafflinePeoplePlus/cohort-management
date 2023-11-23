@@ -5,6 +5,13 @@ type Mutation {
 	Invite a new member by email address
 	"""
 	cohortInviteMember(input: CohortMemberInviteInput!): CohortMemberInviteResult!
+
+	"""
+	Revoke a pending member invite. This action will prevent the invite from being accepted, but it
+	will not rescind the email if it has already been sent. The email may still be delivered even
+	after revocation.
+	"""
+	cohortRevokeMemberInvite(inviteID: ID!): CohortRevokeMemberInviteResult!
 }
 
 type Query {
@@ -64,5 +71,34 @@ enum CohortInviteMemberErrorReason {
 
 type CohortMemberInviteList {
 	items: [CohortMemberInvite!]!
+}
+
+union CohortRevokeMemberInviteResult = CohortMemberInvite | CohortRevokeMemberInviteError
+type CohortRevokeMemberInviteError {
+	"""
+	Reason why the invite was not revoked
+	"""
+	reason: CohortRevokeMemberInviteErrorReason!
+
+	"""
+	Message possibly elaborating on the reason
+	"""
+	message: String!
+}
+
+"""
+Reason why the invite was not revoked
+"""
+enum CohortRevokeMemberInviteErrorReason {
+	"""
+	Invite with given ID was not found. This could mean that the invite was already accepted,
+	already revoked, or never existed in the first place.
+	"""
+	INVITE_NOT_FOUND
+
+	"""
+	An unexpected error occurred
+	"""
+	UNEXPECTED
 }
 `;

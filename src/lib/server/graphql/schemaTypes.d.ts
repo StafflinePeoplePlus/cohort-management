@@ -60,15 +60,46 @@ export type CohortMemberMetadata = CohortManagement.CohortMemberMetadata;
 
 export type CohortMemberMetadataInput = CohortManagement.CohortMemberMetadataInput;
 
+export type CohortRevokeMemberInviteError = {
+  __typename?: 'CohortRevokeMemberInviteError';
+  /** Message possibly elaborating on the reason */
+  message: Scalars['String']['output'];
+  /** Reason why the invite was not revoked */
+  reason: CohortRevokeMemberInviteErrorReason;
+};
+
+/** Reason why the invite was not revoked */
+export type CohortRevokeMemberInviteErrorReason =
+  /**
+   * Invite with given ID was not found. This could mean that the invite was already accepted,
+   * already revoked, or never existed in the first place.
+   */
+  | 'INVITE_NOT_FOUND'
+  /** An unexpected error occurred */
+  | 'UNEXPECTED';
+
+export type CohortRevokeMemberInviteResult = CohortMemberInvite | CohortRevokeMemberInviteError;
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Invite a new member by email address */
   cohortInviteMember: CohortMemberInviteResult;
+  /**
+   * Revoke a pending member invite. This action will prevent the invite from being accepted, but it
+   * will not rescind the email if it has already been sent. The email may still be delivered even
+   * after revocation.
+   */
+  cohortRevokeMemberInvite: CohortRevokeMemberInviteResult;
 };
 
 
 export type MutationCohortInviteMemberArgs = {
   input: CohortMemberInviteInput;
+};
+
+
+export type MutationCohortRevokeMemberInviteArgs = {
+  inviteID: Scalars['ID']['input'];
 };
 
 export type Query = {
@@ -147,6 +178,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   CohortMemberInviteResult: ( CohortInviteMemberError ) | ( CohortMemberInvite );
+  CohortRevokeMemberInviteResult: ( CohortMemberInvite ) | ( CohortRevokeMemberInviteError );
 };
 
 
@@ -161,6 +193,9 @@ export type ResolversTypes = {
   CohortMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortMemberInviteResult']>;
   CohortMemberMetadata: ResolverTypeWrapper<CohortMemberMetadata>;
   CohortMemberMetadataInput: CohortMemberMetadataInput;
+  CohortRevokeMemberInviteError: ResolverTypeWrapper<CohortRevokeMemberInviteError>;
+  CohortRevokeMemberInviteErrorReason: CohortRevokeMemberInviteErrorReason;
+  CohortRevokeMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortRevokeMemberInviteResult']>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -179,6 +214,8 @@ export type ResolversParentTypes = {
   CohortMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortMemberInviteResult'];
   CohortMemberMetadata: CohortMemberMetadata;
   CohortMemberMetadataInput: CohortMemberMetadataInput;
+  CohortRevokeMemberInviteError: CohortRevokeMemberInviteError;
+  CohortRevokeMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortRevokeMemberInviteResult'];
   EmailAddress: Scalars['EmailAddress']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -214,12 +251,23 @@ export type CohortMemberMetadataResolvers<ContextType = any, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type CohortRevokeMemberInviteErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRevokeMemberInviteError'] = ResolversParentTypes['CohortRevokeMemberInviteError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reason?: Resolver<ResolversTypes['CohortRevokeMemberInviteErrorReason'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortRevokeMemberInviteResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRevokeMemberInviteResult'] = ResolversParentTypes['CohortRevokeMemberInviteResult']> = {
+  __resolveType: TypeResolveFn<'CohortMemberInvite' | 'CohortRevokeMemberInviteError', ParentType, ContextType>;
+};
+
 export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['EmailAddress'], any> {
   name: 'EmailAddress';
 }
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   cohortInviteMember?: Resolver<ResolversTypes['CohortMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortInviteMemberArgs, 'input'>>;
+  cohortRevokeMemberInvite?: Resolver<ResolversTypes['CohortRevokeMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortRevokeMemberInviteArgs, 'inviteID'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -233,6 +281,8 @@ export type Resolvers<ContextType = any> = {
   CohortMemberInviteList?: CohortMemberInviteListResolvers<ContextType>;
   CohortMemberInviteResult?: CohortMemberInviteResultResolvers<ContextType>;
   CohortMemberMetadata?: CohortMemberMetadataResolvers<ContextType>;
+  CohortRevokeMemberInviteError?: CohortRevokeMemberInviteErrorResolvers<ContextType>;
+  CohortRevokeMemberInviteResult?: CohortRevokeMemberInviteResultResolvers<ContextType>;
   EmailAddress?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

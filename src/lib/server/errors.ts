@@ -1,4 +1,7 @@
-import type { CohortInviteMemberError as GQLInviteMemberError } from './graphql/generated.js';
+import type {
+	CohortInviteMemberError as GQLInviteMemberError,
+	CohortRevokeMemberInviteError as GQLRevokeMemberInviteError,
+} from './graphql/schemaTypes.js';
 
 export class UnexpectedError extends Error {
 	constructor(message: string, cause?: unknown) {
@@ -49,5 +52,30 @@ export class MemberAlreadySignedUpError extends InviteMemberError {
 			reason: 'ALREADY_MEMBER',
 			message: this.message,
 		};
+	}
+}
+
+export abstract class RevokeMemberInviteError extends Error {
+	abstract toGraphQL(): GQLRevokeMemberInviteError;
+}
+export class InviteNotFoundToRevoke extends RevokeMemberInviteError {
+	constructor(public inviteID: string) {
+		super(`Member invite with ID \`${inviteID}\` could not be found to revoke`);
+	}
+
+	toGraphQL(): GQLRevokeMemberInviteError {
+		return {
+			__typename: 'CohortRevokeMemberInviteError',
+			reason: 'INVITE_NOT_FOUND',
+			message: this.message,
+		};
+	}
+}
+export class RevokeInviteFailed extends UnexpectedError {
+	constructor(
+		public inviteID: string,
+		cause: unknown,
+	) {
+		super(`Failed to revoke invite with ID \`${inviteID}\``, cause);
 	}
 }
