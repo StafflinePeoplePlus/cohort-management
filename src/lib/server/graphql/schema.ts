@@ -9,6 +9,7 @@ type Mutation {
 
 type Query {
 	cohortMemberInvitesCount: Int
+	cohortMemberInvites: CohortMemberInviteList
 }
 
 input CohortMemberInviteInput {
@@ -20,15 +21,14 @@ input CohortMemberInviteInput {
 	"""
 	Metadata to be associated with the invited member once accepted
 	"""
-	metadata: CohortMemberMetadataInput! # This should be defined by the consumer of the library
+	metadata: CohortMemberMetadataInput!
 }
 
 union CohortMemberInviteResult = CohortMemberInvite | CohortInviteMemberError
 type CohortMemberInvite {
-	"""
-	ID associated with the created invite
-	"""
-	inviteID: ID!
+	id: ID!
+	email: EmailAddress!
+	metadata: CohortMemberMetadata!
 }
 type CohortInviteMemberError {
 	"""
@@ -60,5 +60,9 @@ enum CohortInviteMemberErrorReason {
 	An unexpected error occurred
 	"""
 	UNEXPECTED
+}
+
+type CohortMemberInviteList {
+	items: [CohortMemberInvite!]!
 }
 `;

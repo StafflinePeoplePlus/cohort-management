@@ -1,23 +1,20 @@
-import { MemberListItem } from '$lib/client.js';
+import { InviteListItem } from '$lib/client.js';
 import type { Meta, StoryObj } from '@storybook/svelte';
-import MemberListItemWithActions from './MemberListItemWithActions.svelte';
 import { faker } from '@faker-js/faker/locale/en_GB';
+import InviteListItemWithActions from './InviteListItemWithActions.svelte';
 
 const meta = {
-	title: 'Members/MemberListItem',
-	component: MemberListItem,
+	title: 'Invites/InviteListItem',
+	component: InviteListItem,
 	argTypes: {
 		email: { control: 'text' },
-		name: { control: 'text' },
 		class: { control: 'text' },
 		href: { control: 'text' },
-		avatar: { control: 'text' },
 	},
 	args: {
-		name: faker.person.fullName(),
 		email: faker.internet.exampleEmail(),
 	},
-} satisfies Meta<MemberListItem>;
+} satisfies Meta<InviteListItem>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -25,5 +22,5 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const WithActions: Story = {
-	render: (args) => ({ Component: MemberListItemWithActions, props: args }),
+	render: (args) => ({ Component: InviteListItemWithActions, props: args }),
 };

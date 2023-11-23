@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-const userDefinedTypes = ['CohortMemberMetadataInput'];
+const userDefinedTypes = ['CohortMemberMetadataInput', 'CohortMemberMetadata'];
 const typesRegex = /export type (\w+) = {.+?\n};/gs;
 
 const schemaTypesFile = await readFile('./src/lib/server/graphql/schemaTypes.d.ts', 'utf-8');

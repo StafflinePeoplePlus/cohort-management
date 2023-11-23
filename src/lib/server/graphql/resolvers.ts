@@ -56,5 +56,9 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 		cohortMemberInvitesCount(_parent, _args, { cohortAdapter }) {
 			return cohortAdapter.countInvites();
 		},
+		async cohortMemberInvites(_parent, _args, { cohortAdapter }) {
+			const invites = await cohortAdapter.listInvites();
+			return { items: invites };
+		},
 	},
 };
