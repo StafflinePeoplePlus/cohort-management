@@ -51,5 +51,10 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 				};
 			}
 		}
+	},
+	Query: {
+		cohortMemberInvitesCount(_parent, _args, { cohortAdapter }) {
+			return cohortAdapter.countInvites();
+		}
 	}
 };

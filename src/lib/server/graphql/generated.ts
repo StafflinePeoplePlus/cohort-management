@@ -63,6 +63,11 @@ export type MutationCohortInviteMemberArgs = {
   input: CohortMemberInviteInput;
 };
 
+export type Query = {
+  __typename?: 'Query';
+  cohortMemberInvitesCount?: Maybe<Scalars['Int']['output']>;
+};
+
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -147,7 +152,9 @@ export type ResolversTypes = {
   CohortMemberMetadataInput: ResolverTypeWrapper<CohortMemberMetadataInput>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Mutation: ResolverTypeWrapper<{}>;
+  Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
 
@@ -161,7 +168,9 @@ export type ResolversParentTypes = {
   CohortMemberMetadataInput: CohortMemberMetadataInput;
   EmailAddress: Scalars['EmailAddress']['output'];
   ID: Scalars['ID']['output'];
+  Int: Scalars['Int']['output'];
   Mutation: {};
+  Query: {};
   String: Scalars['String']['output'];
 };
 
@@ -193,6 +202,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   cohortInviteMember?: Resolver<ResolversTypes['CohortMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortInviteMemberArgs, 'input'>>;
 };
 
+export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  cohortMemberInvitesCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = any> = {
   CohortInviteMemberError?: CohortInviteMemberErrorResolvers<ContextType>;
   CohortMemberInvite?: CohortMemberInviteResolvers<ContextType>;
@@ -200,5 +213,6 @@ export type Resolvers<ContextType = any> = {
   CohortMemberMetadataInput?: CohortMemberMetadataInputResolvers<ContextType>;
   EmailAddress?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
+  Query?: QueryResolvers<ContextType>;
 };
 

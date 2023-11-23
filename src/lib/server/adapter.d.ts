@@ -22,6 +22,10 @@ export type CohortAdapter = {
 	 * be logged but otherwise ignored.
 	 */
 	sendInvite(invite: Invite): Promise<void>;
+	/**
+	 * Returns the number of invites that have been sent out but have not yet been accepted.
+	 */
+	countInvites(): Promise<number>;
 	findInviteByEmail(email: string): Promise<Invite | undefined>;
 	findMemberByEmail(email: string): Promise<CohortMember | undefined>;
 };

@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const userDefinedTypes = ['CohortMemberMetadataInput'];
 const typesRegex = /export type (\w+) = {.+?\n};/gs;
 
-const generatedFile = await readFile('./src/lib/graphql/generated.ts', 'utf-8');
+const generatedFile = await readFile('./src/lib/server/graphql/generated.ts', 'utf-8');
 
 const patchedFile = generatedFile.replace(typesRegex, (match, type) => {
 	if (userDefinedTypes.includes(type)) {
@@ -11,4 +11,4 @@ const patchedFile = generatedFile.replace(typesRegex, (match, type) => {
 	}
 	return match;
 });
-await writeFile('./src/lib/graphql/generated.ts', patchedFile, 'utf-8');
+await writeFile('./src/lib/server/graphql/generated.ts', patchedFile, 'utf-8');

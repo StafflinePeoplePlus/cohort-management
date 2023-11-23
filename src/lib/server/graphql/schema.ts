@@ -7,6 +7,10 @@ type Mutation {
 	cohortInviteMember(input: CohortMemberInviteInput!): CohortMemberInviteResult!
 }
 
+type Query {
+	cohortMemberInvitesCount: Int
+}
+
 input CohortMemberInviteInput {
 	"""
 	Email address of the member to send the invitation to
