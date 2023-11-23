@@ -102,3 +102,11 @@ enum CohortRevokeMemberInviteErrorReason {
 	UNEXPECTED
 }
 `;
+
+export const defaults = `input CohortMemberMetadataInput {
+	_: String
+}
+type CohortMemberMetadata {
+	_: String
+}
+`;
