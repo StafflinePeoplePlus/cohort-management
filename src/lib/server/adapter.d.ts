@@ -12,7 +12,7 @@ export type CohortAdapter = {
 
 	createInvite(
 		email: string,
-		metadata: CohortManagement.CohortMemberMetadataInput
+		metadata: CohortManagement.CohortMemberMetadataInput,
 	): Promise<Invite>;
 	/**
 	 * Send an invite to the given email address. It is not strictly a requirement for the email to

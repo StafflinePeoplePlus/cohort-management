@@ -1,1 +1,1 @@
-export { default as UserListItem } from './client/components/UserListItem.svelte';
+export { default as MemberListItem } from './client/components/MemberListItem.svelte';

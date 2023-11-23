@@ -16,7 +16,7 @@ export class SendInviteFailed extends UnexpectedError {
 	constructor(
 		public inviteID: string,
 		public email: string,
-		cause: unknown
+		cause: unknown,
 	) {
 		super(`Failed to sent invite email out to \`${email}\` for invite ID \`${inviteID}\``, cause);
 	}
@@ -34,7 +34,7 @@ export class MemberAlreadyInvitedError extends InviteMemberError {
 		return {
 			__typename: 'CohortInviteMemberError',
 			reason: 'ALREADY_INVITED',
-			message: this.message
+			message: this.message,
 		};
 	}
 }
@@ -47,7 +47,7 @@ export class MemberAlreadySignedUpError extends InviteMemberError {
 		return {
 			__typename: 'CohortInviteMemberError',
 			reason: 'ALREADY_MEMBER',
-			message: this.message
+			message: this.message,
 		};
 	}
 }

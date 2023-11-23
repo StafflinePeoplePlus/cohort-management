@@ -8,21 +8,21 @@ const config: CodegenConfig = {
 			plugins: [
 				{
 					add: {
-						content: `/* eslint-disable */`
-					}
+						content: `/* eslint-disable */`,
+					},
 				},
 				'typescript',
-				'typescript-resolvers'
+				'typescript-resolvers',
 			],
 			config: {
 				useTypeImports: true,
 				enumsAsTypes: true,
 				scalars: {
-					EmailAddress: 'string'
-				}
-			}
-		}
-	}
+					EmailAddress: 'string',
+				},
+			},
+		},
+	},
 };
 
 export default config;

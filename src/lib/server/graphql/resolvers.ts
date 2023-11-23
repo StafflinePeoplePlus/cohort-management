@@ -4,7 +4,7 @@ import {
 	InviteMemberError,
 	SendInviteFailed,
 	UnexpectedError,
-	MemberAlreadySignedUpError
+	MemberAlreadySignedUpError,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
@@ -34,7 +34,7 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 
 				return {
 					__typename: 'CohortMemberInvite',
-					inviteID: invite.id
+					inviteID: invite.id,
 				};
 			} catch (err) {
 				if (err instanceof InviteMemberError) {
@@ -42,19 +42,19 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 				}
 
 				await cohortAdapter.onUnexpectedError(
-					UnexpectedError.wrapForResolver('Mutation.cohortInviteMember', err)
+					UnexpectedError.wrapForResolver('Mutation.cohortInviteMember', err),
 				);
 				return {
 					__typename: 'CohortInviteMemberError',
 					reason: 'UNEXPECTED',
-					message: 'An unexpected error occurred'
+					message: 'An unexpected error occurred',
 				};
 			}
-		}
+		},
 	},
 	Query: {
 		cohortMemberInvitesCount(_parent, _args, { cohortAdapter }) {
 			return cohortAdapter.countInvites();
-		}
-	}
+		},
+	},
 };

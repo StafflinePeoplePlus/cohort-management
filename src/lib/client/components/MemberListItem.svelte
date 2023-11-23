@@ -5,16 +5,16 @@
 		Button,
 		Typography,
 		DropdownMenu,
-		createDropdownMenu
+		createDropdownMenu,
 	} from 'pp-svelte-components';
 	import { twMerge } from 'tailwind-merge';
 
-	let className: string | undefined = undefined;
+	let className: string | null | undefined = undefined;
 	export { className as class };
-	export let href: string;
+	export let href: string | null | undefined = undefined;
 	export let name: string;
 	export let email: string;
-	export let avatar: string | undefined = undefined;
+	export let avatar: string | null | undefined = undefined;
 
 	const { trigger, menu } = createDropdownMenu();
 </script>
@@ -22,16 +22,16 @@
 <div
 	class={twMerge(
 		'flex items-center justify-between border-b p-4 transition first:border-t hover:bg-gray-100',
-		className
+		className,
 	)}
 >
-	<a {href} class="flex items-center gap-4">
-		<Avatar {name} src={avatar} />
+	<svelte:element this={href ? 'a' : 'div'} {href} class="flex items-center gap-4">
+		<Avatar {name} src={avatar ?? undefined} />
 		<div>
 			<Typography variant="body">{name}</Typography>
 			<Typography variant="caption">{email}</Typography>
 		</div>
-	</a>
+	</svelte:element>
 	{#if $$slots.actions}
 		<Button variant="secondary" icon class="h-8 w-8" use={[trigger]}>
 			<MoreHorizontalIcon aria-hidden="true" />
