@@ -6,8 +6,8 @@ node_modules
 .env
 .env.*
 !.env.example
-src/lib/graphql/generated.ts
-src/lib/graphql/schema.ts
+src/lib/server/graphql/schemaTypes.d.ts
+src/lib/server/graphql/schema.ts
 
 # Ignore files for PNPM, NPM and YARN
 pnpm-lock.yaml

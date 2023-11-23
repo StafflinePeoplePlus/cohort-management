@@ -7,9 +7,6 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
-	namespace CohortManagement {
-		type CohortMemberMetadataInput = unknown;
-	}
 }
 
 export {};

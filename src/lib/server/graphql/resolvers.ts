@@ -6,7 +6,7 @@ import {
 	UnexpectedError,
 	MemberAlreadySignedUpError
 } from '../errors.js';
-import type { Resolvers } from './generated.js';
+import type { Resolvers } from './schemaTypes.js';
 
 export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 	Mutation: {

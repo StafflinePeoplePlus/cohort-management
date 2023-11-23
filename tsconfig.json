@@ -8,9 +8,8 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
-		"strict": true
-		// TODO: fix once https://github.com/sveltejs/kit/issues/11086 is resolved
-		// "module": "NodeNext",
-		// "moduleResolution": "NodeNext",
+		"strict": true,
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext"
 	}
 }
