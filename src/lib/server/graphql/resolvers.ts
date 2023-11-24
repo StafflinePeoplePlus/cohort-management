@@ -58,6 +58,8 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 		},
 		async cohortRevokeMemberInvite(_parent, { inviteID }, { cohortAdapter }) {
 			try {
+				// TODO: authorization
+
 				const invite = await cohortAdapter.findInviteByID(inviteID);
 				if (!invite) {
 					throw new InviteNotFoundToRevoke(inviteID);

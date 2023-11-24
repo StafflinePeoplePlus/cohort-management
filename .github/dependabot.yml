@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    target-branch: 'uat'
+    groups:
+      all:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'

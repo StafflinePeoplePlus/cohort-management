@@ -6,7 +6,7 @@ import { parse as gql } from 'graphql';
 import { resolvers } from './resolvers.js';
 import typeDefs, { defaults } from './schema.js';
 import { faker } from '@faker-js/faker/locale/en_GB';
-import { Invite } from '$lib';
+import { CohortMember, Invite } from '$lib';
 
 function createMockAdapter(mocks: Partial<CohortAdapter>): CohortAdapter {
 	const abort = (name: string) => () => {
@@ -188,7 +188,118 @@ describe('Mutation', () => {
 			expect(sendInvite).toHaveBeenCalledWith(createdInvite);
 		});
 
-		// TODO: test the rest of the branches
+		test('returns graceful error when member is already invited', async () => {
+			const invite = Invite.create({
+				id: faker.string.uuid(),
+				email: faker.internet.exampleEmail(),
+				metadata: {},
+			});
+
+			const adapter = createMockAdapter({
+				findInviteByEmail: async () => invite,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation SendInvite($input: CohortMemberInviteInput!) {
+						cohortInviteMember(input: $input) {
+							__typename
+							... on CohortInviteMemberError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { input: { email: invite.email, metadata: invite.metadata } },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortInviteMember: {
+						__typename: 'CohortInviteMemberError',
+						reason: 'ALREADY_INVITED',
+						message: `A member with the email \`${invite.email}\` has already been invited`,
+					},
+				},
+			});
+		});
+
+		test('returns graceful error when member is already signed up', async () => {
+			const email = faker.internet.exampleEmail();
+			const member = CohortMember.create({
+				id: faker.string.uuid(),
+			});
+
+			const adapter = createMockAdapter({
+				findInviteByEmail: async () => undefined,
+				findMemberByEmail: async () => member,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation SendInvite($input: CohortMemberInviteInput!) {
+						cohortInviteMember(input: $input) {
+							__typename
+							... on CohortInviteMemberError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { input: { email: email, metadata: {} } },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortInviteMember: {
+						__typename: 'CohortInviteMemberError',
+						reason: 'ALREADY_MEMBER',
+						message: `A member with the email \`${email}\` has already signed up`,
+					},
+				},
+			});
+		});
+
+		test('handles unexpected errors', async () => {
+			const email = faker.internet.exampleEmail();
+
+			const onUnexpectedError = vi.fn();
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				findInviteByEmail: () => Promise.reject(new Error('Injected error')),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation SendInvite($input: CohortMemberInviteInput!) {
+						cohortInviteMember(input: $input) {
+							__typename
+							... on CohortInviteMemberError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { input: { email: email, metadata: {} } },
+			});
+
+			expect(onUnexpectedError).toHaveBeenCalledOnce();
+			expect(result).toEqual({
+				data: {
+					cohortInviteMember: {
+						__typename: 'CohortInviteMemberError',
+						reason: 'UNEXPECTED',
+						message: 'An unexpected error occurred',
+					},
+				},
+			});
+		});
 	});
 
 	describe('cohortRevokeMemberInvite', () => {
