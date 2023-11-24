@@ -10,8 +10,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
-		"lint": "prettier --check . && eslint .",
+		"lint": "eslint .",
 		"format": "prettier --write .",
+		"format:check": "prettier --check .",
 		"codegen": "graphql-codegen --config codegen.ts && node scripts/patchGeneratedTypes.js && node scripts/createSchemaExport.js",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build"

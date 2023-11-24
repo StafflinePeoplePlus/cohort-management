@@ -1,0 +1,59 @@
+name: check
+permissions:
+  contents: read
+on:
+  push:
+    branches: [main]
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    name: check / format
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run format:check
+  svelte-check:
+    runs-on: ubuntu-latest
+    name: check / svelte-check
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run check
+  lint:
+    runs-on: ubuntu-latest
+    name: check / lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+  build:
+    runs-on: ubuntu-latest
+    name: check / build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
