@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
           check-latest: true
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
           check-latest: true
@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
           check-latest: true
@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
           check-latest: true
