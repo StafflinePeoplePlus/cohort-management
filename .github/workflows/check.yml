@@ -11,7 +11,7 @@ concurrency:
 jobs:
   format:
     runs-on: ubuntu-latest
-    name: check / format
+    name: format
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
@@ -23,7 +23,7 @@ jobs:
       - run: npm run format:check
   svelte-check:
     runs-on: ubuntu-latest
-    name: check / svelte-check
+    name: svelte-check
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
@@ -35,7 +35,7 @@ jobs:
       - run: npm run check
   lint:
     runs-on: ubuntu-latest
-    name: check / lint
+    name: lint
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
@@ -47,7 +47,7 @@ jobs:
       - run: npm run lint
   build:
     runs-on: ubuntu-latest
-    name: check / build
+    name: lts / build
     steps:
       - uses: actions/checkout@v4
       - name: Install Node LTS
