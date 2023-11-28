@@ -71,7 +71,7 @@
 		"@graphql-codegen/cli": "5.0.0",
 		"@graphql-codegen/typescript": "4.0.1",
 		"@graphql-codegen/typescript-resolvers": "4.0.1",
-		"@graphql-tools/executor-http": "^1.0.3",
+		"@graphql-tools/executor-http": "^1.0.4",
 		"@storybook/addon-essentials": "^7.5.3",
 		"@storybook/addon-interactions": "^7.5.3",
 		"@storybook/addon-links": "^7.5.3",
