@@ -15,7 +15,8 @@
 		"format:check": "prettier --check .",
 		"codegen": "graphql-codegen --config codegen.ts && node scripts/patchGeneratedTypes.js && node scripts/createSchemaExport.js",
 		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
+		"build-storybook": "storybook build",
+		"release": "npm run build && changeset publish"
 	},
 	"type": "module",
 	"types": "./dist/index.d.ts",
@@ -66,6 +67,7 @@
 		"svelte": "^4.0.0"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.27.1",
 		"@faker-js/faker": "^8.3.1",
 		"@graphql-codegen/add": "^5.0.0",
 		"@graphql-codegen/cli": "5.0.0",
@@ -106,7 +108,7 @@
 	"dependencies": {
 		"graphql": "^16.8.1",
 		"lucide-svelte": "^0.294.0",
-		"pp-svelte-components": "0.0.0-snapshot-20231123152401",
+		"pp-svelte-components": "^0.0.35",
 		"tailwind-merge": "^2.0.0",
 		"type-fest": "^4.8.2"
 	}

@@ -1,0 +1,38 @@
+name: snapshot
+on:
+  workflow_dispatch: {}
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  release:
+    name: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Install Node LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          check-latest: true
+          cache: 'npm'
+      - run: npm i
+      - run: npx changeset version --snapshot snapshot
+      - run: npm run build
+      - name: create .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npx changeset publish --tag snapshot --no-git-tag
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+      - name: Add published snapshot version onto commit as a comment
+        uses: peter-evans/commit-comment@v2
+        with:
+          body: |
+            A snapshot for this commit has been published to NPM as [${{steps.package-version.outputs.current-version}}][1] 🚀
+
+            [1]: https://www.npmjs.com/package/@peopleplus/cohort-management/v/${{steps.package-version.outputs.current-version}}
