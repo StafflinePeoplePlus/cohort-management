@@ -1,15 +1,19 @@
 import type { Invite } from '../types/Invite.js';
 import type { CohortMember } from '../types/CohortMember.js';
 import type { UnexpectedError } from './errors.js';
+import type { RequestEvent } from '@sveltejs/kit';
 
-export type CohortAdapter = {
-	/**
-	 * Called whenever an unexpected error occurs in the CohortManagement system.
-	 * This function can be used to log the error and/or send it to a monitoring service.
-	 * However, it does not provide a way to recover from the error.
-	 */
-	onUnexpectedError(error: UnexpectedError): Promise<void> | void;
+export type CohortAdapter<AuthContext> = StorageAdapter &
+	AuthAdapter<AuthContext> & {
+		/**
+		 * Called whenever an unexpected error occurs in the CohortManagement system.
+		 * This function can be used to log the error and/or send it to a monitoring service.
+		 * However, it does not provide a way to recover from the error.
+		 */
+		onUnexpectedError(error: UnexpectedError): Promise<void> | void;
+	};
 
+export type StorageAdapter = {
 	createInvite(
 		email: string,
 		metadata: CohortManagement.CohortMemberMetadataInput,
@@ -39,5 +43,22 @@ export type CohortAdapter = {
 	listInvites(): Promise<Invite[]>;
 	findInviteByID(id: string): Promise<Invite | undefined>;
 	findInviteByEmail(email: string): Promise<Invite | undefined>;
+
 	findMemberByEmail(email: string): Promise<CohortMember | undefined>;
+	findMemberByID(id: string): Promise<CohortMember | undefined>;
+	searchMembers(query: string): Promise<CohortMember[]>;
+	listMembers(): Promise<CohortMember[]>;
+};
+
+export type AuthAdapter<AuthContext> = {
+	/**
+	 *  Authenticate the actor from the request event context, returning the auth context if
+	 *  successful.
+	 */
+	authenticate(event: RequestEvent): Promise<AuthContext | undefined>;
+
+	/**
+	 * Return true if the actor is authorized with the requested scopes.
+	 */
+	authorize(authContext: AuthContext, scopes: string[]): Promise<boolean>;
 };

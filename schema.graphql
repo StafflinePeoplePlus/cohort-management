@@ -17,6 +17,16 @@ type Mutation {
 type Query {
 	cohortMemberInvitesCount: Int
 	cohortMemberInvites: CohortMemberInviteList
+
+	"""
+	Search for cohort members or list all members if no query is provided
+	"""
+	cohortMembers(query: String): CohortMemberList
+
+	"""
+	Get a single cohort member by ID
+	"""
+	cohortMember(id: ID!): CohortMember
 }
 
 input CohortMemberInviteInput {
@@ -100,4 +110,11 @@ enum CohortRevokeMemberInviteErrorReason {
 	An unexpected error occurred
 	"""
 	UNEXPECTED
+}
+
+type CohortMemberList {
+	items: [CohortMember!]!
+}
+interface CohortMember {
+	id: ID!
 }

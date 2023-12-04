@@ -1,3 +1,4 @@
+import type { RequestEvent } from '@sveltejs/kit';
 import type { CohortAdapter } from '../adapter.js';
 import {
 	MemberAlreadyInvitedError,
@@ -8,14 +9,20 @@ import {
 	InviteNotFoundToRevoke,
 	RevokeMemberInviteError,
 	RevokeInviteFailed,
+	AuthenticationError,
+	wrapError,
+	AuthorisationError,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
-export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
+type ResolverContext = RequestEvent & { cohortAdapter: CohortAdapter<never> };
+
+export const resolvers: Resolvers<ResolverContext> = {
 	Mutation: {
-		async cohortInviteMember(_parent, { input }, { cohortAdapter }) {
+		async cohortInviteMember(_parent, { input }, ctx) {
+			const { cohortAdapter } = ctx;
 			try {
-				// TODO: authorization
+				await assertAuth(ctx, ['cohort:invite:create']);
 
 				const existingInvite = await cohortAdapter.findInviteByEmail(input.email);
 				if (existingInvite !== undefined) {
@@ -29,11 +36,10 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 
 				const invite = await cohortAdapter.createInvite(input.email, input.metadata);
 
-				try {
-					await cohortAdapter.sendInvite(invite);
-				} catch (err) {
-					throw new SendInviteFailed(invite.id, input.email, err);
-				}
+				await wrapError(
+					cohortAdapter.sendInvite(invite),
+					(cause) => new SendInviteFailed(invite.id, input.email, cause),
+				);
 
 				return {
 					__typename: 'CohortMemberInvite',
@@ -56,20 +62,20 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 				};
 			}
 		},
-		async cohortRevokeMemberInvite(_parent, { inviteID }, { cohortAdapter }) {
+		async cohortRevokeMemberInvite(_parent, { inviteID }, ctx) {
+			const { cohortAdapter } = ctx;
 			try {
-				// TODO: authorization
+				await assertAuth(ctx, ['cohort:invite:delete']);
 
 				const invite = await cohortAdapter.findInviteByID(inviteID);
 				if (!invite) {
 					throw new InviteNotFoundToRevoke(inviteID);
 				}
 
-				try {
-					await cohortAdapter.revokeInvite(invite);
-				} catch (err) {
-					throw new RevokeInviteFailed(inviteID, err);
-				}
+				await wrapError(
+					cohortAdapter.revokeInvite(invite),
+					(cause) => new RevokeInviteFailed(inviteID, cause),
+				);
 
 				return {
 					__typename: 'CohortMemberInvite',
@@ -94,12 +100,50 @@ export const resolvers: Resolvers<{ cohortAdapter: CohortAdapter }> = {
 		},
 	},
 	Query: {
-		cohortMemberInvitesCount(_parent, _args, { cohortAdapter }) {
-			return cohortAdapter.countInvites();
+		async cohortMemberInvitesCount(_parent, _args, ctx) {
+			await assertAuth(ctx, ['cohort:invite:read']);
+			return ctx.cohortAdapter.countInvites();
 		},
-		async cohortMemberInvites(_parent, _args, { cohortAdapter }) {
-			const invites = await cohortAdapter.listInvites();
+		async cohortMemberInvites(_parent, _args, ctx) {
+			await assertAuth(ctx, ['cohort:invite:read']);
+			const invites = await ctx.cohortAdapter.listInvites();
 			return { items: invites };
+		},
+		async cohortMember(_parent, { id }, ctx) {
+			await assertAuth(ctx, ['cohort:member:read']);
+			const member = await ctx.cohortAdapter.findMemberByID(id);
+			// Kind of dumb but because we don't define any types that implement the CohortMember
+			// graphql interface, the types get generated as 'never'. In practise, the consumer of
+			// this library will be defining their own types that implement the interface.
+			return (member as never) ?? null;
+		},
+		async cohortMembers(_parent, { query }, ctx) {
+			await assertAuth(ctx, ['cohort:member:read']);
+			const members = query
+				? await ctx.cohortAdapter.searchMembers(query)
+				: await ctx.cohortAdapter.listMembers();
+			return { items: members };
 		},
 	},
 };
+
+/**
+ * Throws if the actor is not authenticated or not authorized with the given scopes.
+ */
+async function assertAuth(ctx: ResolverContext, scopes: string[]) {
+	const authContext = await wrapError(
+		ctx.cohortAdapter.authenticate(ctx),
+		(cause) => new AuthenticationError('cohortInviteMember', cause),
+	);
+	if (!authContext) {
+		throw new AuthenticationError('cohortInviteMember');
+	}
+
+	const authorized = await wrapError(
+		ctx.cohortAdapter.authorize(authContext, scopes),
+		(cause) => new AuthorisationError('cohortInviteMember', scopes, cause),
+	);
+	if (!authorized) {
+		throw new AuthorisationError('cohortInviteMember', scopes);
+	}
+}

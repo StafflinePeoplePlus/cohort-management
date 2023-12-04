@@ -3,6 +3,17 @@ import type {
 	CohortRevokeMemberInviteError as GQLRevokeMemberInviteError,
 } from './graphql/schemaTypes.js';
 
+export async function wrapError<T>(
+	promise: Promise<T>,
+	wrapError: (err: unknown) => Error,
+): Promise<T> {
+	try {
+		return await promise;
+	} catch (err) {
+		throw wrapError(err);
+	}
+}
+
 export class UnexpectedError extends Error {
 	constructor(message: string, cause?: unknown) {
 		super(message, { cause });
@@ -22,6 +33,28 @@ export class SendInviteFailed extends UnexpectedError {
 		cause: unknown,
 	) {
 		super(`Failed to sent invite email out to \`${email}\` for invite ID \`${inviteID}\``, cause);
+	}
+}
+export class AuthenticationError extends UnexpectedError {
+	constructor(
+		public resolver: string,
+		cause?: unknown,
+	) {
+		super(`Authentication failed in resolver of ${resolver}`, cause);
+	}
+}
+export class AuthorisationError extends UnexpectedError {
+	constructor(
+		public resolver: string,
+		public scopes: string[],
+		cause?: unknown,
+	) {
+		super(
+			`Authorisation failed in resolver of ${resolver} with the requested scopes [${scopes.join(
+				', ',
+			)}]`,
+			cause,
+		);
 	}
 }
 

@@ -35,6 +35,10 @@ export type CohortInviteMemberErrorReason =
   /** An unexpected error occurred */
   | 'UNEXPECTED';
 
+export type CohortMember = {
+  id: Scalars['ID']['output'];
+};
+
 export type CohortMemberInvite = {
   __typename?: 'CohortMemberInvite';
   email: Scalars['EmailAddress']['output'];
@@ -55,6 +59,11 @@ export type CohortMemberInviteList = {
 };
 
 export type CohortMemberInviteResult = CohortInviteMemberError | CohortMemberInvite;
+
+export type CohortMemberList = {
+  __typename?: 'CohortMemberList';
+  items: Array<CohortMember>;
+};
 
 export type CohortMemberMetadata = CohortManagement.CohortMemberMetadata;
 
@@ -104,8 +113,22 @@ export type MutationCohortRevokeMemberInviteArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Get a single cohort member by ID */
+  cohortMember?: Maybe<CohortMember>;
   cohortMemberInvites?: Maybe<CohortMemberInviteList>;
   cohortMemberInvitesCount?: Maybe<Scalars['Int']['output']>;
+  /** Search for cohort members or list all members if no query is provided */
+  cohortMembers?: Maybe<CohortMemberList>;
+};
+
+
+export type QueryCohortMemberArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryCohortMembersArgs = {
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -181,16 +204,22 @@ export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   CohortRevokeMemberInviteResult: ( CohortMemberInvite ) | ( CohortRevokeMemberInviteError );
 };
 
+/** Mapping of interface types */
+export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
+  CohortMember: never;
+};
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CohortInviteMemberError: ResolverTypeWrapper<CohortInviteMemberError>;
   CohortInviteMemberErrorReason: CohortInviteMemberErrorReason;
+  CohortMember: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['CohortMember']>;
   CohortMemberInvite: ResolverTypeWrapper<CohortMemberInvite>;
   CohortMemberInviteInput: CohortMemberInviteInput;
   CohortMemberInviteList: ResolverTypeWrapper<CohortMemberInviteList>;
   CohortMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortMemberInviteResult']>;
+  CohortMemberList: ResolverTypeWrapper<CohortMemberList>;
   CohortMemberMetadata: ResolverTypeWrapper<CohortMemberMetadata>;
   CohortMemberMetadataInput: CohortMemberMetadataInput;
   CohortRevokeMemberInviteError: ResolverTypeWrapper<CohortRevokeMemberInviteError>;
@@ -208,10 +237,12 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CohortInviteMemberError: CohortInviteMemberError;
+  CohortMember: ResolversInterfaceTypes<ResolversParentTypes>['CohortMember'];
   CohortMemberInvite: CohortMemberInvite;
   CohortMemberInviteInput: CohortMemberInviteInput;
   CohortMemberInviteList: CohortMemberInviteList;
   CohortMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortMemberInviteResult'];
+  CohortMemberList: CohortMemberList;
   CohortMemberMetadata: CohortMemberMetadata;
   CohortMemberMetadataInput: CohortMemberMetadataInput;
   CohortRevokeMemberInviteError: CohortRevokeMemberInviteError;
@@ -230,6 +261,11 @@ export type CohortInviteMemberErrorResolvers<ContextType = any, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type CohortMemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMember'] = ResolversParentTypes['CohortMember']> = {
+  __resolveType: TypeResolveFn<null, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
 export type CohortMemberInviteResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberInvite'] = ResolversParentTypes['CohortMemberInvite']> = {
   email?: Resolver<ResolversTypes['EmailAddress'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -244,6 +280,11 @@ export type CohortMemberInviteListResolvers<ContextType = any, ParentType extend
 
 export type CohortMemberInviteResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberInviteResult'] = ResolversParentTypes['CohortMemberInviteResult']> = {
   __resolveType: TypeResolveFn<'CohortInviteMemberError' | 'CohortMemberInvite', ParentType, ContextType>;
+};
+
+export type CohortMemberListResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberList'] = ResolversParentTypes['CohortMemberList']> = {
+  items?: Resolver<Array<ResolversTypes['CohortMember']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type CohortMemberMetadataResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberMetadata'] = ResolversParentTypes['CohortMemberMetadata']> = {
@@ -271,15 +312,19 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  cohortMember?: Resolver<Maybe<ResolversTypes['CohortMember']>, ParentType, ContextType, RequireFields<QueryCohortMemberArgs, 'id'>>;
   cohortMemberInvites?: Resolver<Maybe<ResolversTypes['CohortMemberInviteList']>, ParentType, ContextType>;
   cohortMemberInvitesCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  cohortMembers?: Resolver<Maybe<ResolversTypes['CohortMemberList']>, ParentType, ContextType, Partial<QueryCohortMembersArgs>>;
 };
 
 export type Resolvers<ContextType = any> = {
   CohortInviteMemberError?: CohortInviteMemberErrorResolvers<ContextType>;
+  CohortMember?: CohortMemberResolvers<ContextType>;
   CohortMemberInvite?: CohortMemberInviteResolvers<ContextType>;
   CohortMemberInviteList?: CohortMemberInviteListResolvers<ContextType>;
   CohortMemberInviteResult?: CohortMemberInviteResultResolvers<ContextType>;
+  CohortMemberList?: CohortMemberListResolvers<ContextType>;
   CohortMemberMetadata?: CohortMemberMetadataResolvers<ContextType>;
   CohortRevokeMemberInviteError?: CohortRevokeMemberInviteErrorResolvers<ContextType>;
   CohortRevokeMemberInviteResult?: CohortRevokeMemberInviteResultResolvers<ContextType>;

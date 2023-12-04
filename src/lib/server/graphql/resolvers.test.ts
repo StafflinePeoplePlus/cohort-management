@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { test, expect, vi, describe } from 'vitest';
 import { createSchema, createYoga } from 'graphql-yoga';
 import type { CohortAdapter } from '$lib/server';
@@ -8,7 +9,8 @@ import typeDefs, { defaults } from './schema.js';
 import { faker } from '@faker-js/faker/locale/en_GB';
 import { CohortMember, Invite } from '$lib';
 
-function createMockAdapter(mocks: Partial<CohortAdapter>): CohortAdapter {
+type AuthContext = { userID: string; scopes: string[] };
+function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAdapter<AuthContext> {
 	const abort = (name: string) => () => {
 		throw new Error(`\`${name}\` was not expected to be called in this test`);
 	};
@@ -22,11 +24,32 @@ function createMockAdapter(mocks: Partial<CohortAdapter>): CohortAdapter {
 		findInviteByID: mocks.findInviteByID ?? abort('findInviteByID'),
 		findInviteByEmail: mocks.findInviteByEmail ?? abort('findInviteByEmail'),
 		findMemberByEmail: mocks.findMemberByEmail ?? abort('findMemberByEmail'),
+		findMemberByID: mocks.findMemberByID ?? abort('findMemberByID'),
+		searchMembers: mocks.searchMembers ?? abort('searchMembers'),
+		listMembers: mocks.listMembers ?? abort('listMembers'),
+		authenticate: mocks.authenticate ?? (() => Promise.resolve({ userID: 'test', scopes: [] })),
+		authorize: mocks.authorize ?? (() => Promise.resolve(true)),
 	};
 }
 
-function createGraphQLServer(cohortAdapter: CohortAdapter) {
-	const schema = createSchema({ typeDefs: [typeDefs, defaults], resolvers });
+const testSchema = /* GraphQL */ `
+	type TestMember implements CohortMember {
+		id: ID!
+	}
+`;
+
+function createGraphQLServer(cohortAdapter: CohortAdapter<AuthContext>) {
+	const schema = createSchema({
+		typeDefs: [typeDefs, defaults, testSchema],
+		resolvers: {
+			...resolvers,
+			CohortMember: {
+				__resolveType() {
+					return 'TestMember';
+				},
+			},
+		},
+	});
 	const yoga = createYoga({ schema, context: { cohortAdapter } });
 	return buildHTTPExecutor({
 		fetch: yoga.fetch,
@@ -34,25 +57,49 @@ function createGraphQLServer(cohortAdapter: CohortAdapter) {
 }
 
 describe('Query', () => {
-	test('cohortMemberInvitesCount returns the invite count', async () => {
-		const countInvites = vi.fn(() => Promise.resolve(42));
-		const adapter = createMockAdapter({ countInvites });
-		const request = createGraphQLServer(adapter);
+	describe('cohortMemberInvitesCount', () => {
+		test('returns the invite count', async () => {
+			const countInvites = vi.fn(() => Promise.resolve(42));
+			const adapter = createMockAdapter({ countInvites });
+			const request = createGraphQLServer(adapter);
 
-		const result = await request({
-			document: gql(`
-				query {
-					cohortMemberInvitesCount
-				}
-			`),
+			const result = await request({
+				document: gql(`
+					query {
+						cohortMemberInvitesCount
+					}
+				`),
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberInvitesCount: 42,
+				},
+			});
+			expect(countInvites).toHaveBeenCalledOnce();
 		});
 
-		expect(result).toEqual({
-			data: {
-				cohortMemberInvitesCount: 42,
-			},
+		test("requires 'cohort:invite:read'", async () => {
+			const onUnexpectedError = vi.fn();
+			const countInvites = vi.fn(() => Promise.resolve(42));
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({ onUnexpectedError, countInvites, authorize });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					query {
+						cohortMemberInvitesCount
+					}
+				`),
+			});
+
+			expect((result as any).errors).toHaveLength(1);
+			expect((result as any).data.cohortMemberInvitesCount).toBeNull();
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+				'cohort:invite:read',
+			]);
 		});
-		expect(countInvites).toHaveBeenCalledOnce();
 	});
 
 	describe('cohortMemberInvites', () => {
@@ -129,6 +176,276 @@ describe('Query', () => {
 				},
 			});
 			expect(listInvites).toHaveBeenCalledOnce();
+		});
+
+		test("requires 'cohort:invite:read'", async () => {
+			const onUnexpectedError = vi.fn();
+			const listInvites = vi.fn(() => Promise.resolve([]));
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({ onUnexpectedError, listInvites, authorize });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					query {
+						cohortMemberInvites {
+							__typename
+						}
+					}
+				`),
+			});
+
+			expect((result as any).errors).toHaveLength(1);
+			expect((result as any).data.cohortMemberInvites).toBeNull();
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+				'cohort:invite:read',
+			]);
+		});
+	});
+
+	describe('cohortMember', () => {
+		test('returns null when the member is not found', async () => {
+			const findMemberByID = vi.fn(() => Promise.resolve(undefined));
+			const adapter = createMockAdapter({ findMemberByID });
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					query FindMember($id: ID!) {
+						cohortMember(id: $id) {
+							id
+						}
+					}
+				`),
+				variables: { id: memberID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMember: null,
+				},
+			});
+			expect(findMemberByID).toHaveBeenCalledOnce();
+			expect(findMemberByID).toHaveBeenCalledWith(memberID);
+		});
+
+		test('returns member when found by id', async () => {
+			const memberID = faker.string.uuid();
+			const findMemberByID = vi.fn(() => Promise.resolve(CohortMember.create({ id: memberID })));
+			const adapter = createMockAdapter({ findMemberByID });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					query FindMember($id: ID!) {
+						cohortMember(id: $id) {
+							id
+						}
+					}
+				`),
+				variables: { id: memberID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMember: { id: memberID },
+				},
+			});
+			expect(findMemberByID).toHaveBeenCalledOnce();
+			expect(findMemberByID).toHaveBeenCalledWith(memberID);
+		});
+
+		test("requires 'cohort:member:read'", async () => {
+			const onUnexpectedError = vi.fn();
+			const findMemberByID = vi.fn(() => Promise.resolve(undefined));
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({ onUnexpectedError, findMemberByID, authorize });
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					query FindMember($id: ID!) {
+						cohortMember(id: $id) {
+							id
+						}
+					}
+				`),
+				variables: { id: memberID },
+			});
+
+			expect((result as any).errors).toHaveLength(1);
+			expect((result as any).data.cohortMember).toBeNull();
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+				'cohort:member:read',
+			]);
+		});
+	});
+
+	describe('cohortMembers', () => {
+		describe('without query', () => {
+			test('returns empty list when there are no members', async () => {
+				const listMembers = vi.fn(() => Promise.resolve([]));
+				const adapter = createMockAdapter({ listMembers });
+				const request = createGraphQLServer(adapter);
+
+				const result = await request({
+					document: gql(`
+						query {
+							cohortMembers {
+								items {
+									id
+								}
+							}
+						}
+					`),
+				});
+
+				expect(result).toEqual({
+					data: {
+						cohortMembers: { items: [] },
+					},
+				});
+				expect(listMembers).toHaveBeenCalledOnce();
+			});
+
+			test('returns list of all members', async () => {
+				const members = [
+					CohortMember.create({ id: faker.string.uuid() }),
+					CohortMember.create({ id: faker.string.uuid() }),
+					CohortMember.create({ id: faker.string.uuid() }),
+				];
+				const listMembers = vi.fn(() => Promise.resolve(members));
+				const adapter = createMockAdapter({ listMembers });
+				const request = createGraphQLServer(adapter);
+
+				const result = await request({
+					document: gql(`
+						query {
+							cohortMembers {
+								items {
+									id
+								}
+							}
+						}
+					`),
+				});
+
+				expect(result).toEqual({
+					data: {
+						cohortMembers: { items: members },
+					},
+				});
+				expect(listMembers).toHaveBeenCalledOnce();
+			});
+
+			test("requires 'cohort:member:read'", async () => {
+				const authorize = vi.fn(() => Promise.resolve(false));
+				const adapter = createMockAdapter({ authorize });
+				const request = createGraphQLServer(adapter);
+
+				const result = await request({
+					document: gql(`
+						query {
+							cohortMembers {
+								items {
+									id
+								}
+							}
+						}
+					`),
+				});
+
+				expect((result as any).errors).toHaveLength(1);
+				expect((result as any).data.cohortMembers).toBeNull();
+				expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+					'cohort:member:read',
+				]);
+			});
+		});
+
+		describe('with search query', () => {
+			test('returns empty list when there are no results', async () => {
+				const searchMembers = vi.fn(() => Promise.resolve([]));
+				const adapter = createMockAdapter({ searchMembers });
+				const request = createGraphQLServer(adapter);
+
+				const result = await request({
+					document: gql(`
+						query {
+							cohortMembers(query: "abc123") {
+								items {
+									id
+								}
+							}
+						}
+					`),
+				});
+
+				expect(result).toEqual({
+					data: {
+						cohortMembers: { items: [] },
+					},
+				});
+				expect(searchMembers).toHaveBeenCalledOnce();
+				expect(searchMembers).toHaveBeenCalledWith('abc123');
+			});
+
+			test('returns list of all members that match query', async () => {
+				const members = [
+					CohortMember.create({ id: faker.string.uuid() }),
+					CohortMember.create({ id: faker.string.uuid() }),
+					CohortMember.create({ id: faker.string.uuid() }),
+				];
+				const searchMembers = vi.fn(() => Promise.resolve(members));
+				const adapter = createMockAdapter({ searchMembers });
+				const request = createGraphQLServer(adapter);
+
+				const result = await request({
+					document: gql(`
+						query {
+							cohortMembers(query: "abc123") {
+								items {
+									id
+								}
+							}
+						}
+					`),
+				});
+
+				expect(result).toEqual({
+					data: {
+						cohortMembers: { items: members },
+					},
+				});
+				expect(searchMembers).toHaveBeenCalledOnce();
+				expect(searchMembers).toHaveBeenCalledWith('abc123');
+			});
+
+			test("requires 'cohort:member:read'", async () => {
+				const authorize = vi.fn(() => Promise.resolve(false));
+				const adapter = createMockAdapter({ authorize });
+				const request = createGraphQLServer(adapter);
+
+				const result = await request({
+					document: gql(`
+						query {
+							cohortMembers(query: "abc123") {
+								items {
+									id
+								}
+							}
+						}
+					`),
+				});
+
+				expect((result as any).errors).toHaveLength(1);
+				expect((result as any).data.cohortMembers).toBeNull();
+				expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+					'cohort:member:read',
+				]);
+			});
 		});
 	});
 });
@@ -300,6 +617,45 @@ describe('Mutation', () => {
 				},
 			});
 		});
+
+		test("requires 'cohort:invite:create'", async () => {
+			const onUnexpectedError = vi.fn();
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				authorize,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation SendInvite($input: CohortMemberInviteInput!) {
+						cohortInviteMember(input: $input) {
+							__typename
+							... on CohortInviteMemberError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { input: { email: faker.internet.exampleEmail(), metadata: {} } },
+			});
+
+			expect(onUnexpectedError).toHaveBeenCalledOnce();
+			expect(result).toEqual({
+				data: {
+					cohortInviteMember: {
+						__typename: 'CohortInviteMemberError',
+						reason: 'UNEXPECTED',
+						message: 'An unexpected error occurred',
+					},
+				},
+			});
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+				'cohort:invite:create',
+			]);
+		});
 	});
 
 	describe('cohortRevokeMemberInvite', () => {
@@ -424,6 +780,45 @@ describe('Mutation', () => {
 					},
 				},
 			});
+		});
+
+		test("requires 'cohort:invite:delete'", async () => {
+			const onUnexpectedError = vi.fn();
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				authorize,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const inviteID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation RevokeInvite($inviteID: ID!) {
+						cohortRevokeMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortRevokeMemberInviteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { inviteID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortRevokeMemberInvite: {
+						__typename: 'CohortRevokeMemberInviteError',
+						reason: 'UNEXPECTED',
+						message: 'An unexpected error occurred',
+					},
+				},
+			});
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
+				'cohort:invite:delete',
+			]);
 		});
 	});
 });
