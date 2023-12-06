@@ -12,6 +12,16 @@ type Mutation {
 	after revocation.
 	"""
 	cohortRevokeMemberInvite(inviteID: ID!): CohortRevokeMemberInviteResult!
+
+	"""
+	Add role to the given member.
+	"""
+	cohortMemberAddRole(memberID: ID!, roleID: ID!): CohortMemberRoleChangeResult!
+
+	"""
+	Remove role from the given member.
+	"""
+	cohortMemberRemoveRole(memberID: ID!, roleID: ID!): CohortMemberRoleChangeResult!
 }
 
 type Query {
@@ -117,4 +127,39 @@ type CohortMemberList {
 }
 interface CohortMember {
 	id: ID!
+}
+
+union CohortMemberRoleChangeResult = CohortMemberRoleChange | CohortMemberRoleChangeError
+type CohortMemberRoleChange {
+	"""
+	ID of the member the role change was applied to
+	"""
+	memberID: ID!
+}
+type CohortMemberRoleChangeError {
+	"""
+	Reason why the role change failed
+	"""
+	reason: CohortMemberRoleChangeErrorReason!
+
+	"""
+	Message possibly elaborating on the reason
+	"""
+	message: String!
+}
+enum CohortMemberRoleChangeErrorReason {
+	"""
+	Member with given ID was not found
+	"""
+	MEMBER_NOT_FOUND
+
+	"""
+	Role not found with the given id
+	"""
+	UNKNOWN_ROLE
+
+	"""
+	An unexpected error occurred
+	"""
+	UNEXPECTED
 }

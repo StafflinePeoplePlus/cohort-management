@@ -9,7 +9,7 @@ import typeDefs, { defaults } from './schema.js';
 import { faker } from '@faker-js/faker/locale/en_GB';
 import { CohortMember, Invite } from '$lib';
 
-type AuthContext = { userID: string; scopes: string[] };
+type AuthContext = { userID: string };
 function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAdapter<AuthContext> {
 	const abort = (name: string) => () => {
 		throw new Error(`\`${name}\` was not expected to be called in this test`);
@@ -27,8 +27,25 @@ function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAd
 		findMemberByID: mocks.findMemberByID ?? abort('findMemberByID'),
 		searchMembers: mocks.searchMembers ?? abort('searchMembers'),
 		listMembers: mocks.listMembers ?? abort('listMembers'),
-		authenticate: mocks.authenticate ?? (() => Promise.resolve({ userID: 'test', scopes: [] })),
+		findRoleByID: mocks.findRoleByID ?? abort('findRoleByID'),
+
+		permissions: {
+			invite: {
+				create: faker.string.uuid(),
+				read: faker.string.uuid(),
+				delete: faker.string.uuid(),
+			},
+			member: {
+				read: faker.string.uuid(),
+			},
+			role: {
+				assign: faker.string.uuid(),
+			},
+		},
+		authenticate: mocks.authenticate ?? (() => Promise.resolve({ userID: 'test' })),
 		authorize: mocks.authorize ?? (() => Promise.resolve(true)),
+		assignRole: mocks.assignRole ?? abort('assignRole'),
+		unassignRole: mocks.unassignRole ?? abort('unassignRole'),
 	};
 }
 
@@ -79,7 +96,7 @@ describe('Query', () => {
 			expect(countInvites).toHaveBeenCalledOnce();
 		});
 
-		test("requires 'cohort:invite:read'", async () => {
+		test('requires invite read role', async () => {
 			const onUnexpectedError = vi.fn();
 			const countInvites = vi.fn(() => Promise.resolve(42));
 			const authorize = vi.fn(() => Promise.resolve(false));
@@ -96,9 +113,7 @@ describe('Query', () => {
 
 			expect((result as any).errors).toHaveLength(1);
 			expect((result as any).data.cohortMemberInvitesCount).toBeNull();
-			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-				'cohort:invite:read',
-			]);
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [adapter.permissions.invite.read]);
 		});
 	});
 
@@ -178,7 +193,7 @@ describe('Query', () => {
 			expect(listInvites).toHaveBeenCalledOnce();
 		});
 
-		test("requires 'cohort:invite:read'", async () => {
+		test('requires invite read role', async () => {
 			const onUnexpectedError = vi.fn();
 			const listInvites = vi.fn(() => Promise.resolve([]));
 			const authorize = vi.fn(() => Promise.resolve(false));
@@ -197,9 +212,7 @@ describe('Query', () => {
 
 			expect((result as any).errors).toHaveLength(1);
 			expect((result as any).data.cohortMemberInvites).toBeNull();
-			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-				'cohort:invite:read',
-			]);
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [adapter.permissions.invite.read]);
 		});
 	});
 
@@ -256,7 +269,7 @@ describe('Query', () => {
 			expect(findMemberByID).toHaveBeenCalledWith(memberID);
 		});
 
-		test("requires 'cohort:member:read'", async () => {
+		test('requires member read role', async () => {
 			const onUnexpectedError = vi.fn();
 			const findMemberByID = vi.fn(() => Promise.resolve(undefined));
 			const authorize = vi.fn(() => Promise.resolve(false));
@@ -277,9 +290,7 @@ describe('Query', () => {
 
 			expect((result as any).errors).toHaveLength(1);
 			expect((result as any).data.cohortMember).toBeNull();
-			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-				'cohort:member:read',
-			]);
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [adapter.permissions.member.read]);
 		});
 	});
 
@@ -340,7 +351,7 @@ describe('Query', () => {
 				expect(listMembers).toHaveBeenCalledOnce();
 			});
 
-			test("requires 'cohort:member:read'", async () => {
+			test('requires member read role', async () => {
 				const authorize = vi.fn(() => Promise.resolve(false));
 				const adapter = createMockAdapter({ authorize });
 				const request = createGraphQLServer(adapter);
@@ -359,8 +370,8 @@ describe('Query', () => {
 
 				expect((result as any).errors).toHaveLength(1);
 				expect((result as any).data.cohortMembers).toBeNull();
-				expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-					'cohort:member:read',
+				expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [
+					adapter.permissions.member.read,
 				]);
 			});
 		});
@@ -423,7 +434,7 @@ describe('Query', () => {
 				expect(searchMembers).toHaveBeenCalledWith('abc123');
 			});
 
-			test("requires 'cohort:member:read'", async () => {
+			test('requires member read role', async () => {
 				const authorize = vi.fn(() => Promise.resolve(false));
 				const adapter = createMockAdapter({ authorize });
 				const request = createGraphQLServer(adapter);
@@ -442,8 +453,8 @@ describe('Query', () => {
 
 				expect((result as any).errors).toHaveLength(1);
 				expect((result as any).data.cohortMembers).toBeNull();
-				expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-					'cohort:member:read',
+				expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [
+					adapter.permissions.member.read,
 				]);
 			});
 		});
@@ -618,7 +629,7 @@ describe('Mutation', () => {
 			});
 		});
 
-		test("requires 'cohort:invite:create'", async () => {
+		test('requires invite create role', async () => {
 			const onUnexpectedError = vi.fn();
 			const authorize = vi.fn(() => Promise.resolve(false));
 			const adapter = createMockAdapter({
@@ -648,12 +659,12 @@ describe('Mutation', () => {
 					cohortInviteMember: {
 						__typename: 'CohortInviteMemberError',
 						reason: 'UNEXPECTED',
-						message: 'An unexpected error occurred',
+						message: `Missing permission(s) ${adapter.permissions.invite.create}`,
 					},
 				},
 			});
-			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-				'cohort:invite:create',
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [
+				adapter.permissions.invite.create,
 			]);
 		});
 	});
@@ -782,7 +793,7 @@ describe('Mutation', () => {
 			});
 		});
 
-		test("requires 'cohort:invite:delete'", async () => {
+		test('requires invite delete role', async () => {
 			const onUnexpectedError = vi.fn();
 			const authorize = vi.fn(() => Promise.resolve(false));
 			const adapter = createMockAdapter({
@@ -812,13 +823,315 @@ describe('Mutation', () => {
 					cohortRevokeMemberInvite: {
 						__typename: 'CohortRevokeMemberInviteError',
 						reason: 'UNEXPECTED',
-						message: 'An unexpected error occurred',
+						message: `Missing permission(s) ${adapter.permissions.invite.delete}`,
 					},
 				},
 			});
-			expect(authorize).toHaveBeenCalledWith({ userID: 'test', scopes: [] }, [
-				'cohort:invite:delete',
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [
+				adapter.permissions.invite.delete,
 			]);
 		});
 	});
+
+	describe('cohortMemberAddRole', () => {
+		test('requires "role assign" role', async () => {
+			const onUnexpectedError = vi.fn();
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				authorize,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation AddRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberAddRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChangeError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID, roleID: faker.string.uuid() },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberAddRole: {
+						__typename: 'CohortMemberRoleChangeError',
+						reason: 'UNEXPECTED',
+						message: `Missing permission(s) ${adapter.permissions.role.assign}`,
+					},
+				},
+			});
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [adapter.permissions.role.assign]);
+		});
+
+		test('handles member not found error', async () => {
+			const role = fakeRole();
+			const adapter = createMockAdapter({
+				findRoleByID: () => Promise.resolve(role),
+				findMemberByID: () => Promise.resolve(undefined),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation AddRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberAddRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChangeError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID, roleID: role.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberAddRole: {
+						__typename: 'CohortMemberRoleChangeError',
+						reason: 'MEMBER_NOT_FOUND',
+						message: `A member with the ID \`${memberID}\` could not be found`,
+					},
+				},
+			});
+		});
+
+		test('handles unknown role', async () => {
+			const adapter = createMockAdapter({
+				findRoleByID: () => Promise.resolve(undefined),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const roleID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation AddRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberAddRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChangeError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID: faker.string.uuid(), roleID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberAddRole: {
+						__typename: 'CohortMemberRoleChangeError',
+						reason: 'UNKNOWN_ROLE',
+						message: `Role not found with ID \`${roleID}\``,
+					},
+				},
+			});
+		});
+
+		test('returns updated roles list', async () => {
+			const role = fakeRole();
+			const findRoleByID = vi.fn(() => Promise.resolve(role));
+			const assignRole = vi.fn(() => Promise.resolve(undefined));
+			const member = CohortMember.create({
+				id: faker.string.uuid(),
+			});
+			const adapter = createMockAdapter({
+				assignRole,
+				findRoleByID,
+				findMemberByID: () => Promise.resolve(member),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation AddRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberAddRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChange {
+								memberID
+							}
+						}
+					}
+				`),
+				variables: { memberID: member.id, roleID: role.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberAddRole: {
+						__typename: 'CohortMemberRoleChange',
+						memberID: member.id,
+					},
+				},
+			});
+			expect(findRoleByID).toHaveBeenCalledWith(role.id);
+			expect(assignRole).toHaveBeenCalledWith(member, role);
+		});
+	});
+
+	describe('cohortMemberRemoveRole', () => {
+		test('requires "role assign" role', async () => {
+			const onUnexpectedError = vi.fn();
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				authorize,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation RemoveRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberRemoveRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChangeError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID, roleID: faker.string.uuid() },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberRemoveRole: {
+						__typename: 'CohortMemberRoleChangeError',
+						reason: 'UNEXPECTED',
+						message: `Missing permission(s) ${adapter.permissions.role.assign}`,
+					},
+				},
+			});
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [adapter.permissions.role.assign]);
+		});
+
+		test('handles member not found error', async () => {
+			const role = fakeRole();
+			const adapter = createMockAdapter({
+				findRoleByID: () => Promise.resolve(role),
+				findMemberByID: () => Promise.resolve(undefined),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation RemoveRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberRemoveRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChangeError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID, roleID: role.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberRemoveRole: {
+						__typename: 'CohortMemberRoleChangeError',
+						reason: 'MEMBER_NOT_FOUND',
+						message: `A member with the ID \`${memberID}\` could not be found`,
+					},
+				},
+			});
+		});
+
+		test('handles unknown role', async () => {
+			const adapter = createMockAdapter({
+				findRoleByID: () => Promise.resolve(undefined),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const role = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation RemoveRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberRemoveRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChangeError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID: faker.string.uuid(), roleID: role },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberRemoveRole: {
+						__typename: 'CohortMemberRoleChangeError',
+						reason: 'UNKNOWN_ROLE',
+						message: `Role not found with ID \`${role}\``,
+					},
+				},
+			});
+		});
+
+		test('returns updated roles list', async () => {
+			const role = fakeRole();
+			const findRoleByID = vi.fn(() => Promise.resolve(role));
+			const unassignRole = vi.fn(() => Promise.resolve(undefined));
+			const member = CohortMember.create({
+				id: faker.string.uuid(),
+			});
+			const adapter = createMockAdapter({
+				unassignRole,
+				findRoleByID,
+				findMemberByID: () => Promise.resolve(member),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation RemoveRole($memberID: ID!, $roleID: ID!) {
+						cohortMemberRemoveRole(memberID: $memberID, roleID: $roleID) {
+							__typename
+							... on CohortMemberRoleChange {
+								memberID
+							}
+						}
+					}
+				`),
+				variables: { memberID: member.id, roleID: role.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortMemberRemoveRole: {
+						__typename: 'CohortMemberRoleChange',
+						memberID: member.id,
+					},
+				},
+			});
+			expect(findRoleByID).toHaveBeenCalledWith(role.id);
+			expect(unassignRole).toHaveBeenCalledWith(member, role);
+		});
+	});
 });
+
+function fakeRole() {
+	return {
+		id: faker.string.uuid(),
+		name: faker.lorem.word(),
+		description: faker.lorem.sentence(),
+	};
+}

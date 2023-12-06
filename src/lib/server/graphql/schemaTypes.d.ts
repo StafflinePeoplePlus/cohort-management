@@ -69,6 +69,30 @@ export type CohortMemberMetadata = CohortManagement.CohortMemberMetadata;
 
 export type CohortMemberMetadataInput = CohortManagement.CohortMemberMetadataInput;
 
+export type CohortMemberRoleChange = {
+  __typename?: 'CohortMemberRoleChange';
+  /** ID of the member the role change was applied to */
+  memberID: Scalars['ID']['output'];
+};
+
+export type CohortMemberRoleChangeError = {
+  __typename?: 'CohortMemberRoleChangeError';
+  /** Message possibly elaborating on the reason */
+  message: Scalars['String']['output'];
+  /** Reason why the role change failed */
+  reason: CohortMemberRoleChangeErrorReason;
+};
+
+export type CohortMemberRoleChangeErrorReason =
+  /** Member with given ID was not found */
+  | 'MEMBER_NOT_FOUND'
+  /** An unexpected error occurred */
+  | 'UNEXPECTED'
+  /** Role not found with the given id */
+  | 'UNKNOWN_ROLE';
+
+export type CohortMemberRoleChangeResult = CohortMemberRoleChange | CohortMemberRoleChangeError;
+
 export type CohortRevokeMemberInviteError = {
   __typename?: 'CohortRevokeMemberInviteError';
   /** Message possibly elaborating on the reason */
@@ -93,6 +117,10 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Invite a new member by email address */
   cohortInviteMember: CohortMemberInviteResult;
+  /** Add role to the given member. */
+  cohortMemberAddRole: CohortMemberRoleChangeResult;
+  /** Remove role from the given member. */
+  cohortMemberRemoveRole: CohortMemberRoleChangeResult;
   /**
    * Revoke a pending member invite. This action will prevent the invite from being accepted, but it
    * will not rescind the email if it has already been sent. The email may still be delivered even
@@ -104,6 +132,18 @@ export type Mutation = {
 
 export type MutationCohortInviteMemberArgs = {
   input: CohortMemberInviteInput;
+};
+
+
+export type MutationCohortMemberAddRoleArgs = {
+  memberID: Scalars['ID']['input'];
+  roleID: Scalars['ID']['input'];
+};
+
+
+export type MutationCohortMemberRemoveRoleArgs = {
+  memberID: Scalars['ID']['input'];
+  roleID: Scalars['ID']['input'];
 };
 
 
@@ -201,6 +241,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   CohortMemberInviteResult: ( CohortInviteMemberError ) | ( CohortMemberInvite );
+  CohortMemberRoleChangeResult: ( CohortMemberRoleChange ) | ( CohortMemberRoleChangeError );
   CohortRevokeMemberInviteResult: ( CohortMemberInvite ) | ( CohortRevokeMemberInviteError );
 };
 
@@ -222,6 +263,10 @@ export type ResolversTypes = {
   CohortMemberList: ResolverTypeWrapper<CohortMemberList>;
   CohortMemberMetadata: ResolverTypeWrapper<CohortMemberMetadata>;
   CohortMemberMetadataInput: CohortMemberMetadataInput;
+  CohortMemberRoleChange: ResolverTypeWrapper<CohortMemberRoleChange>;
+  CohortMemberRoleChangeError: ResolverTypeWrapper<CohortMemberRoleChangeError>;
+  CohortMemberRoleChangeErrorReason: CohortMemberRoleChangeErrorReason;
+  CohortMemberRoleChangeResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortMemberRoleChangeResult']>;
   CohortRevokeMemberInviteError: ResolverTypeWrapper<CohortRevokeMemberInviteError>;
   CohortRevokeMemberInviteErrorReason: CohortRevokeMemberInviteErrorReason;
   CohortRevokeMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortRevokeMemberInviteResult']>;
@@ -245,6 +290,9 @@ export type ResolversParentTypes = {
   CohortMemberList: CohortMemberList;
   CohortMemberMetadata: CohortMemberMetadata;
   CohortMemberMetadataInput: CohortMemberMetadataInput;
+  CohortMemberRoleChange: CohortMemberRoleChange;
+  CohortMemberRoleChangeError: CohortMemberRoleChangeError;
+  CohortMemberRoleChangeResult: ResolversUnionTypes<ResolversParentTypes>['CohortMemberRoleChangeResult'];
   CohortRevokeMemberInviteError: CohortRevokeMemberInviteError;
   CohortRevokeMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortRevokeMemberInviteResult'];
   EmailAddress: Scalars['EmailAddress']['output'];
@@ -292,6 +340,21 @@ export type CohortMemberMetadataResolvers<ContextType = any, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type CohortMemberRoleChangeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberRoleChange'] = ResolversParentTypes['CohortMemberRoleChange']> = {
+  memberID?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortMemberRoleChangeErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberRoleChangeError'] = ResolversParentTypes['CohortMemberRoleChangeError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reason?: Resolver<ResolversTypes['CohortMemberRoleChangeErrorReason'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortMemberRoleChangeResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberRoleChangeResult'] = ResolversParentTypes['CohortMemberRoleChangeResult']> = {
+  __resolveType: TypeResolveFn<'CohortMemberRoleChange' | 'CohortMemberRoleChangeError', ParentType, ContextType>;
+};
+
 export type CohortRevokeMemberInviteErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRevokeMemberInviteError'] = ResolversParentTypes['CohortRevokeMemberInviteError']> = {
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reason?: Resolver<ResolversTypes['CohortRevokeMemberInviteErrorReason'], ParentType, ContextType>;
@@ -308,6 +371,8 @@ export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<Resolv
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   cohortInviteMember?: Resolver<ResolversTypes['CohortMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortInviteMemberArgs, 'input'>>;
+  cohortMemberAddRole?: Resolver<ResolversTypes['CohortMemberRoleChangeResult'], ParentType, ContextType, RequireFields<MutationCohortMemberAddRoleArgs, 'memberID' | 'roleID'>>;
+  cohortMemberRemoveRole?: Resolver<ResolversTypes['CohortMemberRoleChangeResult'], ParentType, ContextType, RequireFields<MutationCohortMemberRemoveRoleArgs, 'memberID' | 'roleID'>>;
   cohortRevokeMemberInvite?: Resolver<ResolversTypes['CohortRevokeMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortRevokeMemberInviteArgs, 'inviteID'>>;
 };
 
@@ -326,6 +391,9 @@ export type Resolvers<ContextType = any> = {
   CohortMemberInviteResult?: CohortMemberInviteResultResolvers<ContextType>;
   CohortMemberList?: CohortMemberListResolvers<ContextType>;
   CohortMemberMetadata?: CohortMemberMetadataResolvers<ContextType>;
+  CohortMemberRoleChange?: CohortMemberRoleChangeResolvers<ContextType>;
+  CohortMemberRoleChangeError?: CohortMemberRoleChangeErrorResolvers<ContextType>;
+  CohortMemberRoleChangeResult?: CohortMemberRoleChangeResultResolvers<ContextType>;
   CohortRevokeMemberInviteError?: CohortRevokeMemberInviteErrorResolvers<ContextType>;
   CohortRevokeMemberInviteResult?: CohortRevokeMemberInviteResultResolvers<ContextType>;
   EmailAddress?: GraphQLScalarType;

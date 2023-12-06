@@ -3,8 +3,8 @@ import type { CohortMember } from '../types/CohortMember.js';
 import type { UnexpectedError } from './errors.js';
 import type { RequestEvent } from '@sveltejs/kit';
 
-export type CohortAdapter<AuthContext> = StorageAdapter &
-	AuthAdapter<AuthContext> & {
+export type CohortAdapter<AuthContext, Permission = string> = StorageAdapter &
+	AuthAdapter<AuthContext, Permission> & {
 		/**
 		 * Called whenever an unexpected error occurs in the CohortManagement system.
 		 * This function can be used to log the error and/or send it to a monitoring service.
@@ -48,9 +48,28 @@ export type StorageAdapter = {
 	findMemberByID(id: string): Promise<CohortMember | undefined>;
 	searchMembers(query: string): Promise<CohortMember[]>;
 	listMembers(): Promise<CohortMember[]>;
+
+	findRoleByID(id: string): Promise<CohortManagement.Role | undefined>;
 };
 
-export type AuthAdapter<AuthContext> = {
+export type AuthAdapter<AuthContext, Permission = string> = {
+	/**
+	 * Mapping of built-in permissions to the adapter's chosen representation.
+	 */
+	permissions: {
+		invite: {
+			create: Permission;
+			read: Permission;
+			delete: Permission;
+		};
+		member: {
+			read: Permission;
+		};
+		role: {
+			assign: Permission;
+		};
+	};
+
 	/**
 	 *  Authenticate the actor from the request event context, returning the auth context if
 	 *  successful.
@@ -58,7 +77,17 @@ export type AuthAdapter<AuthContext> = {
 	authenticate(event: RequestEvent): Promise<AuthContext | undefined>;
 
 	/**
-	 * Return true if the actor is authorized with the requested scopes.
+	 * Return true if the actor is authorized with the requested permissions.
 	 */
-	authorize(authContext: AuthContext, scopes: string[]): Promise<boolean>;
+	authorize(authContext: AuthContext, permissions: Permission[]): Promise<boolean>;
+
+	/**
+	 * Assign the given role to the given member.
+	 */
+	assignRole(member: CohortMember, role: CohortManagement.Role): Promise<void>;
+
+	/**
+	 * Unassign the given role from the given member.
+	 */
+	unassignRole(member: CohortMember, role: CohortManagement.Role): Promise<void>;
 };

@@ -12,17 +12,24 @@ import {
 	AuthenticationError,
 	wrapError,
 	AuthorisationError,
+	UnknownRole,
+	RoleChangeError,
+	MemberNotFoundForRoleChange,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
-type ResolverContext = RequestEvent & { cohortAdapter: CohortAdapter<never> };
+type UnresolvedType = never;
+type Permission = UnresolvedType;
+type ResolverContext = RequestEvent & {
+	cohortAdapter: CohortAdapter<UnresolvedType, Permission>;
+};
 
 export const resolvers: Resolvers<ResolverContext> = {
 	Mutation: {
 		async cohortInviteMember(_parent, { input }, ctx) {
 			const { cohortAdapter } = ctx;
 			try {
-				await assertAuth(ctx, ['cohort:invite:create']);
+				await assertAuth(ctx, [cohortAdapter.permissions.invite.create]);
 
 				const existingInvite = await cohortAdapter.findInviteByEmail(input.email);
 				if (existingInvite !== undefined) {
@@ -58,14 +65,15 @@ export const resolvers: Resolvers<ResolverContext> = {
 				return {
 					__typename: 'CohortInviteMemberError',
 					reason: 'UNEXPECTED',
-					message: 'An unexpected error occurred',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
 				};
 			}
 		},
 		async cohortRevokeMemberInvite(_parent, { inviteID }, ctx) {
 			const { cohortAdapter } = ctx;
 			try {
-				await assertAuth(ctx, ['cohort:invite:delete']);
+				await assertAuth(ctx, [cohortAdapter.permissions.invite.delete]);
 
 				const invite = await cohortAdapter.findInviteByID(inviteID);
 				if (!invite) {
@@ -94,31 +102,106 @@ export const resolvers: Resolvers<ResolverContext> = {
 				return {
 					__typename: 'CohortRevokeMemberInviteError',
 					reason: 'UNEXPECTED',
-					message: 'An unexpected error occurred',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
+				};
+			}
+		},
+		async cohortMemberAddRole(_parent, { memberID, roleID }, ctx) {
+			const { cohortAdapter } = ctx;
+			try {
+				await assertAuth(ctx, [cohortAdapter.permissions.role.assign]);
+
+				const role = await cohortAdapter.findRoleByID(roleID);
+				if (role === undefined) {
+					throw new UnknownRole(roleID);
+				}
+
+				const member = await cohortAdapter.findMemberByID(memberID);
+				if (member === undefined) {
+					throw new MemberNotFoundForRoleChange(memberID);
+				}
+
+				const allRoles = await cohortAdapter.assignRole(member, role);
+				return {
+					__typename: 'CohortMemberRoleChange',
+					memberID: member.id,
+					roles: allRoles,
+				};
+			} catch (err) {
+				if (err instanceof RoleChangeError) {
+					return err.toGraphQL();
+				}
+
+				await cohortAdapter.onUnexpectedError(
+					UnexpectedError.wrapForResolver('Mutation.cohortMemberAddRole', err),
+				);
+				return {
+					__typename: 'CohortMemberRoleChangeError',
+					reason: 'UNEXPECTED',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
+				};
+			}
+		},
+		async cohortMemberRemoveRole(_parent, { memberID, roleID }, ctx) {
+			const { cohortAdapter } = ctx;
+			try {
+				await assertAuth(ctx, [cohortAdapter.permissions.role.assign]);
+
+				const role = await cohortAdapter.findRoleByID(roleID);
+				if (role === undefined) {
+					throw new UnknownRole(roleID);
+				}
+
+				const member = await cohortAdapter.findMemberByID(memberID);
+				if (member === undefined) {
+					throw new MemberNotFoundForRoleChange(memberID);
+				}
+
+				const allRoles = await cohortAdapter.unassignRole(member, role);
+				return {
+					__typename: 'CohortMemberRoleChange',
+					memberID: member.id,
+					roles: allRoles,
+				};
+			} catch (err) {
+				if (err instanceof RoleChangeError) {
+					return err.toGraphQL();
+				}
+
+				await cohortAdapter.onUnexpectedError(
+					UnexpectedError.wrapForResolver('Mutation.cohortMemberAddRole', err),
+				);
+				return {
+					__typename: 'CohortMemberRoleChangeError',
+					reason: 'UNEXPECTED',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
 				};
 			}
 		},
 	},
 	Query: {
 		async cohortMemberInvitesCount(_parent, _args, ctx) {
-			await assertAuth(ctx, ['cohort:invite:read']);
+			await assertAuth(ctx, [ctx.cohortAdapter.permissions.invite.read]);
 			return ctx.cohortAdapter.countInvites();
 		},
 		async cohortMemberInvites(_parent, _args, ctx) {
-			await assertAuth(ctx, ['cohort:invite:read']);
+			await assertAuth(ctx, [ctx.cohortAdapter.permissions.invite.read]);
 			const invites = await ctx.cohortAdapter.listInvites();
 			return { items: invites };
 		},
 		async cohortMember(_parent, { id }, ctx) {
-			await assertAuth(ctx, ['cohort:member:read']);
+			await assertAuth(ctx, [ctx.cohortAdapter.permissions.member.read]);
 			const member = await ctx.cohortAdapter.findMemberByID(id);
 			// Kind of dumb but because we don't define any types that implement the CohortMember
 			// graphql interface, the types get generated as 'never'. In practise, the consumer of
 			// this library will be defining their own types that implement the interface.
-			return (member as never) ?? null;
+			return (member as UnresolvedType) ?? null;
 		},
 		async cohortMembers(_parent, { query }, ctx) {
-			await assertAuth(ctx, ['cohort:member:read']);
+			await assertAuth(ctx, [ctx.cohortAdapter.permissions.member.read]);
 			const members = query
 				? await ctx.cohortAdapter.searchMembers(query)
 				: await ctx.cohortAdapter.listMembers();
@@ -128,9 +211,9 @@ export const resolvers: Resolvers<ResolverContext> = {
 };
 
 /**
- * Throws if the actor is not authenticated or not authorized with the given scopes.
+ * Throws if the actor is not authenticated or not authorized with the given roles.
  */
-async function assertAuth(ctx: ResolverContext, scopes: string[]) {
+async function assertAuth(ctx: ResolverContext, permissions: Permission[]) {
 	const authContext = await wrapError(
 		ctx.cohortAdapter.authenticate(ctx),
 		(cause) => new AuthenticationError('cohortInviteMember', cause),
@@ -140,10 +223,10 @@ async function assertAuth(ctx: ResolverContext, scopes: string[]) {
 	}
 
 	const authorized = await wrapError(
-		ctx.cohortAdapter.authorize(authContext, scopes),
-		(cause) => new AuthorisationError('cohortInviteMember', scopes, cause),
+		ctx.cohortAdapter.authorize(authContext, permissions),
+		(cause) => new AuthorisationError('cohortInviteMember', permissions, cause),
 	);
 	if (!authorized) {
-		throw new AuthorisationError('cohortInviteMember', scopes);
+		throw new AuthorisationError('cohortInviteMember', permissions);
 	}
 }

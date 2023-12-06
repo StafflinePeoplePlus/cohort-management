@@ -1,6 +1,7 @@
 import type {
 	CohortInviteMemberError as GQLInviteMemberError,
 	CohortRevokeMemberInviteError as GQLRevokeMemberInviteError,
+	CohortMemberRoleChangeError as GQLCohortMemberRoleChangeError,
 } from './graphql/schemaTypes.js';
 
 export async function wrapError<T>(
@@ -17,6 +18,10 @@ export async function wrapError<T>(
 export class UnexpectedError extends Error {
 	constructor(message: string, cause?: unknown) {
 		super(message, { cause });
+	}
+
+	get publicMessage() {
+		return 'An unexpected error occurred';
 	}
 
 	static wrapForResolver(resolver: string, err: unknown): UnexpectedError {
@@ -46,15 +51,19 @@ export class AuthenticationError extends UnexpectedError {
 export class AuthorisationError extends UnexpectedError {
 	constructor(
 		public resolver: string,
-		public scopes: string[],
+		public permissions: unknown[],
 		cause?: unknown,
 	) {
 		super(
-			`Authorisation failed in resolver of ${resolver} with the requested scopes [${scopes.join(
+			`Authorisation failed in resolver of ${resolver} with the requested permissions [${permissions.join(
 				', ',
 			)}]`,
 			cause,
 		);
+	}
+
+	get publicMessage() {
+		return `Missing permission(s) ${this.permissions.join(', ')}`;
 	}
 }
 
@@ -107,8 +116,44 @@ export class InviteNotFoundToRevoke extends RevokeMemberInviteError {
 export class RevokeInviteFailed extends UnexpectedError {
 	constructor(
 		public inviteID: string,
-		cause: unknown,
+		cause?: unknown,
 	) {
 		super(`Failed to revoke invite with ID \`${inviteID}\``, cause);
+	}
+}
+
+export abstract class RoleChangeError extends Error {
+	abstract toGraphQL(): GQLCohortMemberRoleChangeError;
+}
+export class UnknownRole extends RoleChangeError {
+	constructor(
+		public roleID: string,
+		cause?: unknown,
+	) {
+		super(`Role not found with ID \`${roleID}\``, { cause });
+	}
+
+	toGraphQL(): GQLCohortMemberRoleChangeError {
+		return {
+			__typename: 'CohortMemberRoleChangeError',
+			reason: 'UNKNOWN_ROLE',
+			message: this.message,
+		};
+	}
+}
+export class MemberNotFoundForRoleChange extends RoleChangeError {
+	constructor(
+		public memberID: string,
+		cause?: unknown,
+	) {
+		super(`A member with the ID \`${memberID}\` could not be found`, { cause });
+	}
+
+	toGraphQL(): GQLCohortMemberRoleChangeError {
+		return {
+			__typename: 'CohortMemberRoleChangeError',
+			reason: 'MEMBER_NOT_FOUND',
+			message: this.message,
+		};
 	}
 }
