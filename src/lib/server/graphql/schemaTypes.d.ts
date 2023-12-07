@@ -73,6 +73,8 @@ export type CohortMemberRoleChange = {
   __typename?: 'CohortMemberRoleChange';
   /** ID of the member the role change was applied to */
   memberID: Scalars['ID']['output'];
+  /** Details of the role that was added or removed */
+  role: CohortRole;
 };
 
 export type CohortMemberRoleChangeError = {
@@ -358,6 +360,7 @@ export type CohortMemberMetadataResolvers<ContextType = any, ParentType extends 
 
 export type CohortMemberRoleChangeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberRoleChange'] = ResolversParentTypes['CohortMemberRoleChange']> = {
   memberID?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  role?: Resolver<ResolversTypes['CohortRole'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

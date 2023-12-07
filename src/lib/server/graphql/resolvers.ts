@@ -122,11 +122,11 @@ export const resolvers: Resolvers<ResolverContext> = {
 					throw new MemberNotFoundForRoleChange(memberID);
 				}
 
-				const allRoles = await cohortAdapter.assignRole(member, role);
+				await cohortAdapter.assignRole(member, role);
 				return {
 					__typename: 'CohortMemberRoleChange',
 					memberID: member.id,
-					roles: allRoles,
+					role: role,
 				};
 			} catch (err) {
 				if (err instanceof RoleChangeError) {
@@ -159,11 +159,11 @@ export const resolvers: Resolvers<ResolverContext> = {
 					throw new MemberNotFoundForRoleChange(memberID);
 				}
 
-				const allRoles = await cohortAdapter.unassignRole(member, role);
+				await cohortAdapter.unassignRole(member, role);
 				return {
 					__typename: 'CohortMemberRoleChange',
 					memberID: member.id,
-					roles: allRoles,
+					role,
 				};
 			} catch (err) {
 				if (err instanceof RoleChangeError) {

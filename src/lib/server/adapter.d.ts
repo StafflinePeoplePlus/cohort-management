@@ -50,8 +50,8 @@ export type StorageAdapter = {
 	searchMembers(query: string): Promise<CohortMember[]>;
 	listMembers(): Promise<CohortMember[]>;
 
-	listRoles(): Promise<CohortRole[]>;
-	findRoleByID(id: string): Promise<CohortRole | undefined>;
+	listRoles(): Promise<CohortManagement.CohortRole[]>;
+	findRoleByID(id: string): Promise<CohortManagement.CohortRole | undefined>;
 };
 
 export type AuthAdapter<AuthContext, Permission = string> = {

@@ -140,6 +140,11 @@ type CohortMemberRoleChange {
 	ID of the member the role change was applied to
 	"""
 	memberID: ID!
+
+	"""
+	Details of the role that was added or removed
+	"""
+	role: CohortRole!
 }
 type CohortMemberRoleChangeError {
 	"""
