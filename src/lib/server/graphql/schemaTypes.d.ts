@@ -113,6 +113,15 @@ export type CohortRevokeMemberInviteErrorReason =
 
 export type CohortRevokeMemberInviteResult = CohortMemberInvite | CohortRevokeMemberInviteError;
 
+export type CohortRole = {
+  id: Scalars['ID']['output'];
+};
+
+export type CohortRoleList = {
+  __typename?: 'CohortRoleList';
+  items: Array<CohortRole>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Invite a new member by email address */
@@ -159,6 +168,8 @@ export type Query = {
   cohortMemberInvitesCount?: Maybe<Scalars['Int']['output']>;
   /** Search for cohort members or list all members if no query is provided */
   cohortMembers?: Maybe<CohortMemberList>;
+  /** List all roles that can be assigned to members */
+  cohortRoles?: Maybe<CohortRoleList>;
 };
 
 
@@ -248,6 +259,7 @@ export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
   CohortMember: never;
+  CohortRole: never;
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -270,6 +282,8 @@ export type ResolversTypes = {
   CohortRevokeMemberInviteError: ResolverTypeWrapper<CohortRevokeMemberInviteError>;
   CohortRevokeMemberInviteErrorReason: CohortRevokeMemberInviteErrorReason;
   CohortRevokeMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortRevokeMemberInviteResult']>;
+  CohortRole: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['CohortRole']>;
+  CohortRoleList: ResolverTypeWrapper<CohortRoleList>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -295,6 +309,8 @@ export type ResolversParentTypes = {
   CohortMemberRoleChangeResult: ResolversUnionTypes<ResolversParentTypes>['CohortMemberRoleChangeResult'];
   CohortRevokeMemberInviteError: CohortRevokeMemberInviteError;
   CohortRevokeMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortRevokeMemberInviteResult'];
+  CohortRole: ResolversInterfaceTypes<ResolversParentTypes>['CohortRole'];
+  CohortRoleList: CohortRoleList;
   EmailAddress: Scalars['EmailAddress']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -365,6 +381,16 @@ export type CohortRevokeMemberInviteResultResolvers<ContextType = any, ParentTyp
   __resolveType: TypeResolveFn<'CohortMemberInvite' | 'CohortRevokeMemberInviteError', ParentType, ContextType>;
 };
 
+export type CohortRoleResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRole'] = ResolversParentTypes['CohortRole']> = {
+  __resolveType: TypeResolveFn<null, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
+export type CohortRoleListResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRoleList'] = ResolversParentTypes['CohortRoleList']> = {
+  items?: Resolver<Array<ResolversTypes['CohortRole']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['EmailAddress'], any> {
   name: 'EmailAddress';
 }
@@ -381,6 +407,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   cohortMemberInvites?: Resolver<Maybe<ResolversTypes['CohortMemberInviteList']>, ParentType, ContextType>;
   cohortMemberInvitesCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   cohortMembers?: Resolver<Maybe<ResolversTypes['CohortMemberList']>, ParentType, ContextType, Partial<QueryCohortMembersArgs>>;
+  cohortRoles?: Resolver<Maybe<ResolversTypes['CohortRoleList']>, ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
@@ -396,6 +423,8 @@ export type Resolvers<ContextType = any> = {
   CohortMemberRoleChangeResult?: CohortMemberRoleChangeResultResolvers<ContextType>;
   CohortRevokeMemberInviteError?: CohortRevokeMemberInviteErrorResolvers<ContextType>;
   CohortRevokeMemberInviteResult?: CohortRevokeMemberInviteResultResolvers<ContextType>;
+  CohortRole?: CohortRoleResolvers<ContextType>;
+  CohortRoleList?: CohortRoleListResolvers<ContextType>;
   EmailAddress?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

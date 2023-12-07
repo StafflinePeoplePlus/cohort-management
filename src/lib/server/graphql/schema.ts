@@ -37,6 +37,11 @@ type Query {
 	Get a single cohort member by ID
 	"""
 	cohortMember(id: ID!): CohortMember
+
+	"""
+	List all roles that can be assigned to members
+	"""
+	cohortRoles: CohortRoleList
 }
 
 input CohortMemberInviteInput {
@@ -162,6 +167,13 @@ enum CohortMemberRoleChangeErrorReason {
 	An unexpected error occurred
 	"""
 	UNEXPECTED
+}
+
+interface CohortRole {
+	id: ID!
+}
+type CohortRoleList {
+	items: [CohortRole!]!
 }
 `;
 

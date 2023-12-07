@@ -27,6 +27,7 @@ function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAd
 		findMemberByID: mocks.findMemberByID ?? abort('findMemberByID'),
 		searchMembers: mocks.searchMembers ?? abort('searchMembers'),
 		listMembers: mocks.listMembers ?? abort('listMembers'),
+		listRoles: mocks.listRoles ?? abort('listRoles'),
 		findRoleByID: mocks.findRoleByID ?? abort('findRoleByID'),
 
 		permissions: {
@@ -39,6 +40,7 @@ function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAd
 				read: faker.string.uuid(),
 			},
 			role: {
+				read: faker.string.uuid(),
 				assign: faker.string.uuid(),
 			},
 		},
@@ -53,6 +55,11 @@ const testSchema = /* GraphQL */ `
 	type TestMember implements CohortMember {
 		id: ID!
 	}
+	type TestRole implements CohortRole {
+		id: ID!
+		name: String!
+		description: String!
+	}
 `;
 
 function createGraphQLServer(cohortAdapter: CohortAdapter<AuthContext>) {
@@ -63,6 +70,11 @@ function createGraphQLServer(cohortAdapter: CohortAdapter<AuthContext>) {
 			CohortMember: {
 				__resolveType() {
 					return 'TestMember';
+				},
+			},
+			CohortRole: {
+				__resolveType() {
+					return 'TestRole';
 				},
 			},
 		},
@@ -457,6 +469,60 @@ describe('Query', () => {
 					adapter.permissions.member.read,
 				]);
 			});
+		});
+	});
+
+	describe('cohortRoles', () => {
+		test('returns list of all roles', async () => {
+			const roles = [fakeRole(), fakeRole(), fakeRole()];
+			const listRoles = vi.fn(() => Promise.resolve(roles));
+			const adapter = createMockAdapter({ listRoles });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					query {
+						cohortRoles {
+							items {
+								id
+								... on TestRole {
+									name
+									description
+								}
+							}
+						}
+					}
+				`),
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortRoles: { items: roles },
+				},
+			});
+			expect(listRoles).toHaveBeenCalledOnce();
+		});
+
+		test("requires 'role read' role", async () => {
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({ authorize });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					query {
+						cohortRoles {
+							items {
+								id
+							}
+						}
+					}
+				`),
+			});
+
+			expect((result as any).errors).toHaveLength(1);
+			expect((result as any).data.cohortRoles).toBeNull();
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [adapter.permissions.role.read]);
 		});
 	});
 });

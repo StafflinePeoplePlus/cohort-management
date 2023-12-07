@@ -2,6 +2,7 @@ import type { Invite } from '../types/Invite.js';
 import type { CohortMember } from '../types/CohortMember.js';
 import type { UnexpectedError } from './errors.js';
 import type { RequestEvent } from '@sveltejs/kit';
+import type { CohortRole } from './graphql/schemaTypes.js';
 
 export type CohortAdapter<AuthContext, Permission = string> = StorageAdapter &
 	AuthAdapter<AuthContext, Permission> & {
@@ -49,7 +50,8 @@ export type StorageAdapter = {
 	searchMembers(query: string): Promise<CohortMember[]>;
 	listMembers(): Promise<CohortMember[]>;
 
-	findRoleByID(id: string): Promise<CohortManagement.Role | undefined>;
+	listRoles(): Promise<CohortRole[]>;
+	findRoleByID(id: string): Promise<CohortRole | undefined>;
 };
 
 export type AuthAdapter<AuthContext, Permission = string> = {
@@ -66,6 +68,7 @@ export type AuthAdapter<AuthContext, Permission = string> = {
 			read: Permission;
 		};
 		role: {
+			read: Permission;
 			assign: Permission;
 		};
 	};
@@ -84,10 +87,10 @@ export type AuthAdapter<AuthContext, Permission = string> = {
 	/**
 	 * Assign the given role to the given member.
 	 */
-	assignRole(member: CohortMember, role: CohortManagement.Role): Promise<void>;
+	assignRole(member: CohortMember, role: CohortManagement.CohortRole): Promise<void>;
 
 	/**
 	 * Unassign the given role from the given member.
 	 */
-	unassignRole(member: CohortMember, role: CohortManagement.Role): Promise<void>;
+	unassignRole(member: CohortMember, role: CohortManagement.CohortRole): Promise<void>;
 };

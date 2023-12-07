@@ -207,6 +207,11 @@ export const resolvers: Resolvers<ResolverContext> = {
 				: await ctx.cohortAdapter.listMembers();
 			return { items: members };
 		},
+		async cohortRoles(_parent, _args, ctx) {
+			await assertAuth(ctx, [ctx.cohortAdapter.permissions.role.read]);
+			const roles = await ctx.cohortAdapter.listRoles();
+			return { items: roles };
+		},
 	},
 };
 
