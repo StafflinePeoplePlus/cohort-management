@@ -15,6 +15,7 @@ import {
 	UnknownRole,
 	RoleChangeError,
 	MemberNotFoundForRoleChange,
+	UnknownRoleForInvite,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
@@ -30,6 +31,17 @@ export const resolvers: Resolvers<ResolverContext> = {
 			const { cohortAdapter } = ctx;
 			try {
 				await assertAuth(ctx, [cohortAdapter.permissions.invite.create]);
+
+				if (input.roleIDs) {
+					await Promise.all(
+						input.roleIDs.map(async (id) => {
+							const role = await cohortAdapter.findRoleByID(id);
+							if (role === undefined) {
+								throw new UnknownRoleForInvite(id);
+							}
+						}),
+					);
+				}
 
 				const existingInvite = await cohortAdapter.findInviteByEmail(input.email);
 				if (existingInvite !== undefined) {
@@ -53,6 +65,7 @@ export const resolvers: Resolvers<ResolverContext> = {
 					id: invite.id,
 					email: invite.email,
 					metadata: invite.metadata,
+					roleIDs: invite.roleIDs,
 				};
 			} catch (err) {
 				if (err instanceof InviteMemberError) {
@@ -90,6 +103,7 @@ export const resolvers: Resolvers<ResolverContext> = {
 					id: invite.id,
 					email: invite.email,
 					metadata: invite.metadata,
+					roleIDs: invite.roleIDs,
 				};
 			} catch (err) {
 				if (err instanceof RevokeMemberInviteError) {

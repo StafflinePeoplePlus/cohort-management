@@ -51,6 +51,11 @@ input CohortMemberInviteInput {
 	email: EmailAddress!
 
 	"""
+	IDs of any roles the invited member should be assigned when they accept the invite
+	"""
+	roleIDs: [ID!]
+
+	"""
 	Metadata to be associated with the invited member once accepted
 	"""
 	metadata: CohortMemberMetadataInput!
@@ -61,6 +66,7 @@ type CohortMemberInvite {
 	id: ID!
 	email: EmailAddress!
 	metadata: CohortMemberMetadata!
+	roleIDs: [ID!]!
 }
 type CohortInviteMemberError {
 	"""
@@ -87,6 +93,11 @@ enum CohortInviteMemberErrorReason {
 	There is already a member signed up with given email
 	"""
 	ALREADY_MEMBER
+
+	"""
+	One or more of the role IDs are invalid
+	"""
+	UNKNOWN_ROLE
 
 	"""
 	An unexpected error occurred

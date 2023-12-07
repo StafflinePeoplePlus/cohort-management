@@ -8,6 +8,7 @@ import { resolvers } from './resolvers.js';
 import typeDefs, { defaults } from './schema.js';
 import { faker } from '@faker-js/faker/locale/en_GB';
 import { CohortMember, Invite } from '$lib';
+import type { PlainInvite } from '$lib/types/Invite.js';
 
 type AuthContext = { userID: string };
 function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAdapter<AuthContext> {
@@ -157,23 +158,7 @@ describe('Query', () => {
 		});
 
 		test('returns a list of invites', async () => {
-			const invites = [
-				Invite.create({
-					id: faker.string.uuid(),
-					email: faker.internet.exampleEmail(),
-					metadata: {},
-				}),
-				Invite.create({
-					id: faker.string.uuid(),
-					email: faker.internet.exampleEmail(),
-					metadata: {},
-				}),
-				Invite.create({
-					id: faker.string.uuid(),
-					email: faker.internet.exampleEmail(),
-					metadata: {},
-				}),
-			];
+			const invites = [fakeInvite(), fakeInvite(), fakeInvite()];
 			const listInvites = vi.fn(() => Promise.resolve(invites));
 			const adapter = createMockAdapter({ listInvites });
 			const request = createGraphQLServer(adapter);
@@ -530,23 +515,18 @@ describe('Query', () => {
 describe('Mutation', () => {
 	describe('cohortInviteMember', () => {
 		test('creates and attempts to send invite', async () => {
-			const newInvite = {
-				email: faker.internet.exampleEmail(),
-				metadata: {},
-			};
-			const createdInvite = Invite.create({
-				id: faker.string.uuid(),
-				email: newInvite.email,
-				metadata: newInvite.metadata,
-			});
+			const role = fakeRole();
+			const invite = fakeInvite({ roleIDs: [role.id] });
 
 			const findInviteByEmail = vi.fn(() => Promise.resolve(undefined));
 			const findMemberByEmail = vi.fn(() => Promise.resolve(undefined));
-			const createInvite = vi.fn(() => Promise.resolve(createdInvite));
+			const findRoleByID = vi.fn(() => Promise.resolve(role));
+			const createInvite = vi.fn(() => Promise.resolve(invite));
 			const sendInvite = vi.fn(() => Promise.resolve());
 			const adapter = createMockAdapter({
 				findInviteByEmail,
 				findMemberByEmail,
+				findRoleByID,
 				createInvite,
 				sendInvite,
 			});
@@ -560,34 +540,35 @@ describe('Mutation', () => {
 							... on CohortMemberInvite {
 								id
 								email
+								roleIDs
 							}
 						}
 					}
 				`),
-				variables: { input: newInvite },
+				variables: {
+					input: { email: invite.email, metadata: invite.metadata, roleIDs: invite.roleIDs },
+				},
 			});
 
 			expect(result).toEqual({
 				data: {
 					cohortInviteMember: {
 						__typename: 'CohortMemberInvite',
-						id: createdInvite.id,
-						email: newInvite.email,
+						id: invite.id,
+						email: invite.email,
+						roleIDs: invite.roleIDs,
 					},
 				},
 			});
-			expect(findInviteByEmail).toHaveBeenCalledWith(newInvite.email);
-			expect(findMemberByEmail).toHaveBeenCalledWith(newInvite.email);
-			expect(createInvite).toHaveBeenCalledWith(newInvite.email, newInvite.metadata);
-			expect(sendInvite).toHaveBeenCalledWith(createdInvite);
+			expect(findInviteByEmail).toHaveBeenCalledWith(invite.email);
+			expect(findMemberByEmail).toHaveBeenCalledWith(invite.email);
+			expect(findRoleByID).toHaveBeenCalledWith(role.id);
+			expect(createInvite).toHaveBeenCalledWith(invite.email, invite.metadata);
+			expect(sendInvite).toHaveBeenCalledWith(invite);
 		});
 
 		test('returns graceful error when member is already invited', async () => {
-			const invite = Invite.create({
-				id: faker.string.uuid(),
-				email: faker.internet.exampleEmail(),
-				metadata: {},
-			});
+			const invite = fakeInvite();
 
 			const adapter = createMockAdapter({
 				findInviteByEmail: async () => invite,
@@ -653,6 +634,45 @@ describe('Mutation', () => {
 						__typename: 'CohortInviteMemberError',
 						reason: 'ALREADY_MEMBER',
 						message: `A member with the email \`${email}\` has already signed up`,
+					},
+				},
+			});
+		});
+
+		test('returns graceful error when role is not found', async () => {
+			const roleID = faker.string.uuid();
+			const invite = fakeInvite({ roleIDs: [roleID] });
+
+			const adapter = createMockAdapter({
+				findRoleByID: async () => undefined,
+				findInviteByEmail: async () => undefined,
+				findMemberByEmail: async () => undefined,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation SendInvite($input: CohortMemberInviteInput!) {
+						cohortInviteMember(input: $input) {
+							__typename
+							... on CohortInviteMemberError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: {
+					input: { email: invite.email, metadata: invite.metadata, roleIDs: invite.roleIDs },
+				},
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortInviteMember: {
+						__typename: 'CohortInviteMemberError',
+						reason: 'UNKNOWN_ROLE',
+						message: `Role not found with ID \`${roleID}\``,
 					},
 				},
 			});
@@ -737,23 +757,7 @@ describe('Mutation', () => {
 
 	describe('cohortRevokeMemberInvite', () => {
 		test('attempts to revoke the invite', async () => {
-			const invites = [
-				Invite.create({
-					id: faker.string.uuid(),
-					email: faker.internet.exampleEmail(),
-					metadata: {},
-				}),
-				Invite.create({
-					id: faker.string.uuid(),
-					email: faker.internet.exampleEmail(),
-					metadata: {},
-				}),
-				Invite.create({
-					id: faker.string.uuid(),
-					email: faker.internet.exampleEmail(),
-					metadata: {},
-				}),
-			];
+			const invites = [fakeInvite(), fakeInvite(), fakeInvite()];
 			const findInviteByID = vi.fn((id) =>
 				Promise.resolve(invites.find((invite) => invite.id === id)),
 			);
@@ -1193,6 +1197,16 @@ describe('Mutation', () => {
 		});
 	});
 });
+
+function fakeInvite(fields: Partial<PlainInvite> = {}) {
+	return Invite.create({
+		id: faker.string.uuid(),
+		email: faker.internet.exampleEmail(),
+		metadata: {},
+		roleIDs: [],
+		...fields,
+	});
+}
 
 function fakeRole() {
 	return {

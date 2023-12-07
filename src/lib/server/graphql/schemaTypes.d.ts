@@ -33,7 +33,9 @@ export type CohortInviteMemberErrorReason =
   /** There is already a member signed up with given email */
   | 'ALREADY_MEMBER'
   /** An unexpected error occurred */
-  | 'UNEXPECTED';
+  | 'UNEXPECTED'
+  /** One or more of the role IDs are invalid */
+  | 'UNKNOWN_ROLE';
 
 export type CohortMember = {
   id: Scalars['ID']['output'];
@@ -44,6 +46,7 @@ export type CohortMemberInvite = {
   email: Scalars['EmailAddress']['output'];
   id: Scalars['ID']['output'];
   metadata: CohortMemberMetadata;
+  roleIDs: Array<Scalars['ID']['output']>;
 };
 
 export type CohortMemberInviteInput = {
@@ -51,6 +54,8 @@ export type CohortMemberInviteInput = {
   email: Scalars['EmailAddress']['input'];
   /** Metadata to be associated with the invited member once accepted */
   metadata: CohortMemberMetadataInput;
+  /** IDs of any roles the invited member should be assigned when they accept the invite */
+  roleIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
 
 export type CohortMemberInviteList = {
@@ -336,6 +341,7 @@ export type CohortMemberInviteResolvers<ContextType = any, ParentType extends Re
   email?: Resolver<ResolversTypes['EmailAddress'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   metadata?: Resolver<ResolversTypes['CohortMemberMetadata'], ParentType, ContextType>;
+  roleIDs?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

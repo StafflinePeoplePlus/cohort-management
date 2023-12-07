@@ -70,6 +70,22 @@ export class AuthorisationError extends UnexpectedError {
 export abstract class InviteMemberError extends Error {
 	abstract toGraphQL(): GQLInviteMemberError;
 }
+export class UnknownRoleForInvite extends InviteMemberError {
+	constructor(
+		public roleID: string,
+		cause?: unknown,
+	) {
+		super(`Role not found with ID \`${roleID}\``, { cause });
+	}
+
+	toGraphQL(): GQLInviteMemberError {
+		return {
+			__typename: 'CohortInviteMemberError',
+			reason: 'UNKNOWN_ROLE',
+			message: this.message,
+		};
+	}
+}
 export class MemberAlreadyInvitedError extends InviteMemberError {
 	constructor(public email: string) {
 		super(`A member with the email \`${email}\` has already been invited`);
