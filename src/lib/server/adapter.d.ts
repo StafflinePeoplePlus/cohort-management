@@ -36,6 +36,10 @@ export type StorageAdapter = {
 	 */
 	revokeInvite(invite: Invite): Promise<void>;
 	/**
+	 * Redeem the invite by creating a new member
+	 */
+	redeemInvite(event: RequestEvent, invite: Invite): Promise<CohortMember>;
+	/**
 	 * Returns the number of invites that have been sent out but have not yet been accepted.
 	 */
 	countInvites(): Promise<number>;
@@ -95,4 +99,8 @@ export type AuthAdapter<AuthContext, Permission = string> = {
 	 * Unassign the given role from the given member.
 	 */
 	unassignRole(member: CohortMember, role: CohortManagement.CohortRole): Promise<void>;
+};
+
+export type ResolverContext = RequestEvent & {
+	cohortAdapter: CohortAdapter<UnresolvedType, Permission>;
 };

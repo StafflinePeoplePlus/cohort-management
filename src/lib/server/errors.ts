@@ -1,6 +1,7 @@
 import type {
 	CohortInviteMemberError as GQLInviteMemberError,
 	CohortRevokeMemberInviteError as GQLRevokeMemberInviteError,
+	CohortRedeemMemberInviteError as GQLRedeemMemberInviteError,
 	CohortMemberRoleChangeError as GQLCohortMemberRoleChangeError,
 } from './graphql/schemaTypes.js';
 
@@ -124,6 +125,31 @@ export class InviteNotFoundToRevoke extends RevokeMemberInviteError {
 	toGraphQL(): GQLRevokeMemberInviteError {
 		return {
 			__typename: 'CohortRevokeMemberInviteError',
+			reason: 'INVITE_NOT_FOUND',
+			message: this.message,
+		};
+	}
+}
+export class RedeemInviteFailed extends UnexpectedError {
+	constructor(
+		public inviteID: string,
+		cause?: unknown,
+	) {
+		super(`Failed to redeem invite with ID \`${inviteID}\``, cause);
+	}
+}
+
+export abstract class RedeemMemberInviteError extends Error {
+	abstract toGraphQL(): GQLRedeemMemberInviteError;
+}
+export class InviteNotFoundToRedeem extends RedeemMemberInviteError {
+	constructor(public inviteID: string) {
+		super(`Member invite with ID \`${inviteID}\` could not be found to redeem`);
+	}
+
+	toGraphQL(): GQLRedeemMemberInviteError {
+		return {
+			__typename: 'CohortRedeemMemberInviteError',
 			reason: 'INVITE_NOT_FOUND',
 			message: this.message,
 		};

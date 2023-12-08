@@ -16,6 +16,9 @@ import {
 	RoleChangeError,
 	MemberNotFoundForRoleChange,
 	UnknownRoleForInvite,
+	InviteNotFoundToRedeem,
+	RedeemInviteFailed,
+	RedeemMemberInviteError,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
@@ -119,6 +122,39 @@ export const resolvers: Resolvers<ResolverContext> = {
 				);
 				return {
 					__typename: 'CohortRevokeMemberInviteError',
+					reason: 'UNEXPECTED',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
+				};
+			}
+		},
+		async cohortRedeemMemberInvite(_parent, { inviteID }, ctx) {
+			const { cohortAdapter } = ctx;
+			try {
+				const invite = await cohortAdapter.findInviteByID(inviteID);
+				if (!invite) {
+					throw new InviteNotFoundToRedeem(inviteID);
+				}
+
+				const member = await wrapError(
+					cohortAdapter.redeemInvite(ctx, invite),
+					(cause) => new RedeemInviteFailed(inviteID, cause),
+				);
+				return {
+					__typename: 'CohortRedeemMemberInvite',
+					member,
+				};
+			} catch (err) {
+				if (err instanceof RedeemMemberInviteError) {
+					return err.toGraphQL();
+				}
+
+				console.log(err);
+				await cohortAdapter.onUnexpectedError(
+					UnexpectedError.wrapForResolver('Mutation.cohortRedeemMemberInvite', err),
+				);
+				return {
+					__typename: 'CohortRedeemMemberInviteError',
 					reason: 'UNEXPECTED',
 					message:
 						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',

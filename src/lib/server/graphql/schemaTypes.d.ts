@@ -100,6 +100,31 @@ export type CohortMemberRoleChangeErrorReason =
 
 export type CohortMemberRoleChangeResult = CohortMemberRoleChange | CohortMemberRoleChangeError;
 
+export type CohortRedeemMemberInvite = {
+  __typename?: 'CohortRedeemMemberInvite';
+  member: CohortMember;
+};
+
+export type CohortRedeemMemberInviteError = {
+  __typename?: 'CohortRedeemMemberInviteError';
+  /** Message possibly elaborating on the reason */
+  message: Scalars['String']['output'];
+  /** Reason why the invite was not redeemed */
+  reason: CohortRedeemMemberInviteErrorReason;
+};
+
+/** Reason why the invite was not redeemed */
+export type CohortRedeemMemberInviteErrorReason =
+  /**
+   * Invite with given ID was not found. This could mean that the invite was already redeemed,
+   * already revoked, or never existed in the first place.
+   */
+  | 'INVITE_NOT_FOUND'
+  /** An unexpected error occurred */
+  | 'UNEXPECTED';
+
+export type CohortRedeemMemberInviteResult = CohortRedeemMemberInvite | CohortRedeemMemberInviteError;
+
 export type CohortRevokeMemberInviteError = {
   __typename?: 'CohortRevokeMemberInviteError';
   /** Message possibly elaborating on the reason */
@@ -111,7 +136,7 @@ export type CohortRevokeMemberInviteError = {
 /** Reason why the invite was not revoked */
 export type CohortRevokeMemberInviteErrorReason =
   /**
-   * Invite with given ID was not found. This could mean that the invite was already accepted,
+   * Invite with given ID was not found. This could mean that the invite was already redeemed,
    * already revoked, or never existed in the first place.
    */
   | 'INVITE_NOT_FOUND'
@@ -138,6 +163,11 @@ export type Mutation = {
   /** Remove role from the given member. */
   cohortMemberRemoveRole: CohortMemberRoleChangeResult;
   /**
+   * Redeem the invite with the given ID, creating a new member and assigning them the roles
+   * specified in the invite.
+   */
+  cohortRedeemMemberInvite: CohortRedeemMemberInviteResult;
+  /**
    * Revoke a pending member invite. This action will prevent the invite from being accepted, but it
    * will not rescind the email if it has already been sent. The email may still be delivered even
    * after revocation.
@@ -160,6 +190,11 @@ export type MutationCohortMemberAddRoleArgs = {
 export type MutationCohortMemberRemoveRoleArgs = {
   memberID: Scalars['ID']['input'];
   roleID: Scalars['ID']['input'];
+};
+
+
+export type MutationCohortRedeemMemberInviteArgs = {
+  inviteID: Scalars['ID']['input'];
 };
 
 
@@ -260,6 +295,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   CohortMemberInviteResult: ( CohortInviteMemberError ) | ( CohortMemberInvite );
   CohortMemberRoleChangeResult: ( CohortMemberRoleChange ) | ( CohortMemberRoleChangeError );
+  CohortRedeemMemberInviteResult: ( CohortRedeemMemberInvite ) | ( CohortRedeemMemberInviteError );
   CohortRevokeMemberInviteResult: ( CohortMemberInvite ) | ( CohortRevokeMemberInviteError );
 };
 
@@ -286,6 +322,10 @@ export type ResolversTypes = {
   CohortMemberRoleChangeError: ResolverTypeWrapper<CohortMemberRoleChangeError>;
   CohortMemberRoleChangeErrorReason: CohortMemberRoleChangeErrorReason;
   CohortMemberRoleChangeResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortMemberRoleChangeResult']>;
+  CohortRedeemMemberInvite: ResolverTypeWrapper<CohortRedeemMemberInvite>;
+  CohortRedeemMemberInviteError: ResolverTypeWrapper<CohortRedeemMemberInviteError>;
+  CohortRedeemMemberInviteErrorReason: CohortRedeemMemberInviteErrorReason;
+  CohortRedeemMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortRedeemMemberInviteResult']>;
   CohortRevokeMemberInviteError: ResolverTypeWrapper<CohortRevokeMemberInviteError>;
   CohortRevokeMemberInviteErrorReason: CohortRevokeMemberInviteErrorReason;
   CohortRevokeMemberInviteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortRevokeMemberInviteResult']>;
@@ -314,6 +354,9 @@ export type ResolversParentTypes = {
   CohortMemberRoleChange: CohortMemberRoleChange;
   CohortMemberRoleChangeError: CohortMemberRoleChangeError;
   CohortMemberRoleChangeResult: ResolversUnionTypes<ResolversParentTypes>['CohortMemberRoleChangeResult'];
+  CohortRedeemMemberInvite: CohortRedeemMemberInvite;
+  CohortRedeemMemberInviteError: CohortRedeemMemberInviteError;
+  CohortRedeemMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortRedeemMemberInviteResult'];
   CohortRevokeMemberInviteError: CohortRevokeMemberInviteError;
   CohortRevokeMemberInviteResult: ResolversUnionTypes<ResolversParentTypes>['CohortRevokeMemberInviteResult'];
   CohortRole: ResolversInterfaceTypes<ResolversParentTypes>['CohortRole'];
@@ -380,6 +423,21 @@ export type CohortMemberRoleChangeResultResolvers<ContextType = any, ParentType 
   __resolveType: TypeResolveFn<'CohortMemberRoleChange' | 'CohortMemberRoleChangeError', ParentType, ContextType>;
 };
 
+export type CohortRedeemMemberInviteResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRedeemMemberInvite'] = ResolversParentTypes['CohortRedeemMemberInvite']> = {
+  member?: Resolver<ResolversTypes['CohortMember'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortRedeemMemberInviteErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRedeemMemberInviteError'] = ResolversParentTypes['CohortRedeemMemberInviteError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reason?: Resolver<ResolversTypes['CohortRedeemMemberInviteErrorReason'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortRedeemMemberInviteResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRedeemMemberInviteResult'] = ResolversParentTypes['CohortRedeemMemberInviteResult']> = {
+  __resolveType: TypeResolveFn<'CohortRedeemMemberInvite' | 'CohortRedeemMemberInviteError', ParentType, ContextType>;
+};
+
 export type CohortRevokeMemberInviteErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortRevokeMemberInviteError'] = ResolversParentTypes['CohortRevokeMemberInviteError']> = {
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reason?: Resolver<ResolversTypes['CohortRevokeMemberInviteErrorReason'], ParentType, ContextType>;
@@ -408,6 +466,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   cohortInviteMember?: Resolver<ResolversTypes['CohortMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortInviteMemberArgs, 'input'>>;
   cohortMemberAddRole?: Resolver<ResolversTypes['CohortMemberRoleChangeResult'], ParentType, ContextType, RequireFields<MutationCohortMemberAddRoleArgs, 'memberID' | 'roleID'>>;
   cohortMemberRemoveRole?: Resolver<ResolversTypes['CohortMemberRoleChangeResult'], ParentType, ContextType, RequireFields<MutationCohortMemberRemoveRoleArgs, 'memberID' | 'roleID'>>;
+  cohortRedeemMemberInvite?: Resolver<ResolversTypes['CohortRedeemMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortRedeemMemberInviteArgs, 'inviteID'>>;
   cohortRevokeMemberInvite?: Resolver<ResolversTypes['CohortRevokeMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortRevokeMemberInviteArgs, 'inviteID'>>;
 };
 
@@ -430,6 +489,9 @@ export type Resolvers<ContextType = any> = {
   CohortMemberRoleChange?: CohortMemberRoleChangeResolvers<ContextType>;
   CohortMemberRoleChangeError?: CohortMemberRoleChangeErrorResolvers<ContextType>;
   CohortMemberRoleChangeResult?: CohortMemberRoleChangeResultResolvers<ContextType>;
+  CohortRedeemMemberInvite?: CohortRedeemMemberInviteResolvers<ContextType>;
+  CohortRedeemMemberInviteError?: CohortRedeemMemberInviteErrorResolvers<ContextType>;
+  CohortRedeemMemberInviteResult?: CohortRedeemMemberInviteResultResolvers<ContextType>;
   CohortRevokeMemberInviteError?: CohortRevokeMemberInviteErrorResolvers<ContextType>;
   CohortRevokeMemberInviteResult?: CohortRevokeMemberInviteResultResolvers<ContextType>;
   CohortRole?: CohortRoleResolvers<ContextType>;

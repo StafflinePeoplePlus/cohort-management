@@ -12,11 +12,23 @@ import type { PlainInvite } from '$lib/types/Invite.js';
 
 type AuthContext = { userID: string };
 function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAdapter<AuthContext> {
-	const abort = (name: string) => () => {
-		throw new Error(`\`${name}\` was not expected to be called in this test`);
-	};
+	const abort =
+		(name: string) =>
+		(...args: unknown[]) => {
+			throw new Error(
+				`\`${name}\` was not expected to be called in this test. Called with args: [${args.join(
+					', ',
+				)}]`,
+			);
+		};
 	return {
-		onUnexpectedError: mocks.onUnexpectedError ?? abort('onUnexpectedError'),
+		onUnexpectedError:
+			mocks.onUnexpectedError ??
+			((cause) => {
+				throw new Error('`onUnexpectedError` was not expected to be called in this test.', {
+					cause,
+				});
+			}),
 		createInvite: mocks.createInvite ?? abort('createInvite'),
 		sendInvite: mocks.sendInvite ?? abort('sendInvite'),
 		revokeInvite: mocks.revokeInvite ?? abort('revokeInvite'),
@@ -28,6 +40,7 @@ function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAd
 		findMemberByID: mocks.findMemberByID ?? abort('findMemberByID'),
 		searchMembers: mocks.searchMembers ?? abort('searchMembers'),
 		listMembers: mocks.listMembers ?? abort('listMembers'),
+		redeemInvite: mocks.redeemInvite ?? abort('redeemInvite'),
 		listRoles: mocks.listRoles ?? abort('listRoles'),
 		findRoleByID: mocks.findRoleByID ?? abort('findRoleByID'),
 
@@ -901,6 +914,114 @@ describe('Mutation', () => {
 			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [
 				adapter.permissions.invite.delete,
 			]);
+		});
+	});
+
+	describe('cohortRedeemMemberInvite', () => {
+		test('redeems the invite', async () => {
+			const invite = fakeInvite();
+			const newMember = CohortMember.create({ id: faker.string.uuid() });
+			const findInviteByID = vi.fn(async () => invite);
+			const redeemInvite = vi.fn(async () => newMember);
+			const adapter = createMockAdapter({ findInviteByID, redeemInvite });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation RedeemInvite($inviteID: ID!) {
+						cohortRedeemMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortRedeemMemberInvite {
+								member {
+									id
+								}
+							}
+						}
+					}
+				`),
+				variables: { inviteID: invite.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortRedeemMemberInvite: {
+						__typename: 'CohortRedeemMemberInvite',
+						member: {
+							id: newMember.id,
+						},
+					},
+				},
+			});
+			expect(findInviteByID).toHaveBeenCalledWith(invite.id);
+			expect(redeemInvite).toHaveBeenCalled();
+		});
+
+		test('handles unexpected errors', async () => {
+			const onUnexpectedError = vi.fn();
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				findInviteByID: () => Promise.reject(new Error('Injected error')),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation RedeemInvite($inviteID: ID!) {
+						cohortRedeemMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortRedeemMemberInviteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { inviteID: faker.string.uuid() },
+			});
+
+			expect(onUnexpectedError).toHaveBeenCalledOnce();
+			expect(result).toEqual({
+				data: {
+					cohortRedeemMemberInvite: {
+						__typename: 'CohortRedeemMemberInviteError',
+						reason: 'UNEXPECTED',
+						message: 'An unexpected error occurred',
+					},
+				},
+			});
+		});
+
+		test('handles invite not found error', async () => {
+			const adapter = createMockAdapter({
+				findInviteByID: () => Promise.resolve(undefined),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const inviteID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation RedeemInvite($inviteID: ID!) {
+						cohortRedeemMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortRedeemMemberInviteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { inviteID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortRedeemMemberInvite: {
+						__typename: 'CohortRedeemMemberInviteError',
+						reason: 'INVITE_NOT_FOUND',
+						message: `Member invite with ID \`${inviteID}\` could not be found to redeem`,
+					},
+				},
+			});
 		});
 	});
 
