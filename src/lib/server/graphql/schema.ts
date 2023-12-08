@@ -20,6 +20,11 @@ type Mutation {
 	cohortRedeemMemberInvite(inviteID: ID!): CohortRedeemMemberInviteResult!
 
 	"""
+	Resend the invite to the email address associated with the given invite ID.
+	"""
+	cohortResendMemberInvite(inviteID: ID!): CohortResendMemberInviteResult!
+
+	"""
 	Add role to the given member.
 	"""
 	cohortMemberAddRole(memberID: ID!, roleID: ID!): CohortMemberRoleChangeResult!
@@ -163,6 +168,34 @@ type CohortRedeemMemberInvite {
 Reason why the invite was not redeemed
 """
 enum CohortRedeemMemberInviteErrorReason {
+	"""
+	Invite with given ID was not found. This could mean that the invite was already redeemed,
+	already revoked, or never existed in the first place.
+	"""
+	INVITE_NOT_FOUND
+
+	"""
+	An unexpected error occurred
+	"""
+	UNEXPECTED
+}
+
+union CohortResendMemberInviteResult = CohortMemberInvite | CohortResendMemberInviteError
+type CohortResendMemberInviteError {
+	"""
+	Reason why the invite was not resent
+	"""
+	reason: CohortResendMemberInviteErrorReason!
+
+	"""
+	Message possibly elaborating on the reason
+	"""
+	message: String!
+}
+"""
+Reason why the invite was not resent
+"""
+enum CohortResendMemberInviteErrorReason {
 	"""
 	Invite with given ID was not found. This could mean that the invite was already redeemed,
 	already revoked, or never existed in the first place.

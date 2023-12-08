@@ -19,6 +19,9 @@ import {
 	InviteNotFoundToRedeem,
 	RedeemInviteFailed,
 	RedeemMemberInviteError,
+	ResendMemberInviteError,
+	InviteNotFoundToResend,
+	ResendInviteFailed,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
@@ -155,6 +158,40 @@ export const resolvers: Resolvers<ResolverContext> = {
 				);
 				return {
 					__typename: 'CohortRedeemMemberInviteError',
+					reason: 'UNEXPECTED',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
+				};
+			}
+		},
+		async cohortResendMemberInvite(_parent, { inviteID }, ctx) {
+			const { cohortAdapter } = ctx;
+			try {
+				const invite = await cohortAdapter.findInviteByID(inviteID);
+				if (!invite) {
+					throw new InviteNotFoundToResend(inviteID);
+				}
+
+				await wrapError(
+					cohortAdapter.sendInvite(invite),
+					(cause) => new ResendInviteFailed(inviteID, cause),
+				);
+
+				return {
+					__typename: 'CohortMemberInvite',
+					...invite,
+				};
+			} catch (err) {
+				if (err instanceof ResendMemberInviteError) {
+					return err.toGraphQL();
+				}
+
+				console.log(err);
+				await cohortAdapter.onUnexpectedError(
+					UnexpectedError.wrapForResolver('Mutation.cohortResendMemberInvite', err),
+				);
+				return {
+					__typename: 'CohortResendMemberInviteError',
 					reason: 'UNEXPECTED',
 					message:
 						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',

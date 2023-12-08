@@ -1025,6 +1025,109 @@ describe('Mutation', () => {
 		});
 	});
 
+	describe('cohortResendMemberInvite', () => {
+		test('attempts to resend the invite', async () => {
+			const invite = fakeInvite();
+			const findInviteByID = vi.fn(async () => invite);
+			const sendInvite = vi.fn();
+			const adapter = createMockAdapter({ findInviteByID, sendInvite });
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation ResendInvite($inviteID: ID!) {
+						cohortResendMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortMemberInvite {
+								id
+							}
+						}
+					}
+				`),
+				variables: { inviteID: invite.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortResendMemberInvite: {
+						__typename: 'CohortMemberInvite',
+						id: invite.id,
+					},
+				},
+			});
+			expect(findInviteByID).toHaveBeenCalledWith(invite.id);
+			expect(sendInvite).toHaveBeenCalledWith(invite);
+		});
+
+		test('handles unexpected errors', async () => {
+			const onUnexpectedError = vi.fn();
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				findInviteByID: () => Promise.reject(new Error('Injected error')),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation ResendInvite($inviteID: ID!) {
+						cohortResendMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortResendMemberInviteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { inviteID: faker.string.uuid() },
+			});
+
+			expect(onUnexpectedError).toHaveBeenCalledOnce();
+			expect(result).toEqual({
+				data: {
+					cohortResendMemberInvite: {
+						__typename: 'CohortResendMemberInviteError',
+						reason: 'UNEXPECTED',
+						message: 'An unexpected error occurred',
+					},
+				},
+			});
+		});
+
+		test('handles invite not found error', async () => {
+			const adapter = createMockAdapter({
+				findInviteByID: () => Promise.resolve(undefined),
+			});
+			const request = createGraphQLServer(adapter);
+
+			const inviteID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation ResendInvite($inviteID: ID!) {
+						cohortResendMemberInvite(inviteID: $inviteID) {
+							__typename
+							... on CohortResendMemberInviteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { inviteID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortResendMemberInvite: {
+						__typename: 'CohortResendMemberInviteError',
+						reason: 'INVITE_NOT_FOUND',
+						message: `Member invite with ID \`${inviteID}\` could not be found to resend`,
+					},
+				},
+			});
+		});
+	});
+
 	describe('cohortMemberAddRole', () => {
 		test('requires "role assign" role', async () => {
 			const onUnexpectedError = vi.fn();

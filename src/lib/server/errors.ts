@@ -2,6 +2,7 @@ import type {
 	CohortInviteMemberError as GQLInviteMemberError,
 	CohortRevokeMemberInviteError as GQLRevokeMemberInviteError,
 	CohortRedeemMemberInviteError as GQLRedeemMemberInviteError,
+	CohortResendMemberInviteError as GQLResendMemberInviteError,
 	CohortMemberRoleChangeError as GQLCohortMemberRoleChangeError,
 } from './graphql/schemaTypes.js';
 
@@ -130,12 +131,12 @@ export class InviteNotFoundToRevoke extends RevokeMemberInviteError {
 		};
 	}
 }
-export class RedeemInviteFailed extends UnexpectedError {
+export class RevokeInviteFailed extends UnexpectedError {
 	constructor(
 		public inviteID: string,
 		cause?: unknown,
 	) {
-		super(`Failed to redeem invite with ID \`${inviteID}\``, cause);
+		super(`Failed to revoke invite with ID \`${inviteID}\``, cause);
 	}
 }
 
@@ -155,12 +156,37 @@ export class InviteNotFoundToRedeem extends RedeemMemberInviteError {
 		};
 	}
 }
-export class RevokeInviteFailed extends UnexpectedError {
+export class RedeemInviteFailed extends UnexpectedError {
 	constructor(
 		public inviteID: string,
 		cause?: unknown,
 	) {
-		super(`Failed to revoke invite with ID \`${inviteID}\``, cause);
+		super(`Failed to redeem invite with ID \`${inviteID}\``, cause);
+	}
+}
+
+export abstract class ResendMemberInviteError extends Error {
+	abstract toGraphQL(): GQLResendMemberInviteError;
+}
+export class InviteNotFoundToResend extends ResendMemberInviteError {
+	constructor(public inviteID: string) {
+		super(`Member invite with ID \`${inviteID}\` could not be found to resend`);
+	}
+
+	toGraphQL(): GQLResendMemberInviteError {
+		return {
+			__typename: 'CohortResendMemberInviteError',
+			reason: 'INVITE_NOT_FOUND',
+			message: this.message,
+		};
+	}
+}
+export class ResendInviteFailed extends UnexpectedError {
+	constructor(
+		public inviteID: string,
+		cause?: unknown,
+	) {
+		super(`Failed to resend invite with ID \`${inviteID}\``, cause);
 	}
 }
 
