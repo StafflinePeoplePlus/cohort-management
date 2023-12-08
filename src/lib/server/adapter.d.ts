@@ -14,11 +14,13 @@ export type CohortAdapter<AuthContext, Permission = string> = StorageAdapter &
 		onUnexpectedError(error: UnexpectedError): Promise<void> | void;
 	};
 
+export type NewInvite = {
+	email: string;
+	roleIDs: string[];
+	metadata: CohortManagement.CohortMemberMetadataInput;
+};
 export type StorageAdapter = {
-	createInvite(
-		email: string,
-		metadata: CohortManagement.CohortMemberMetadataInput,
-	): Promise<Invite>;
+	createInvite(newInvite: NewInvite): Promise<Invite>;
 	/**
 	 * Send an invite to the given email address. It is not strictly a requirement for the email to
 	 * be sent out immediately, you may choose to send it to a background job queue for example.

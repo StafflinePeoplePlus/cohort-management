@@ -532,6 +532,7 @@ describe('Mutation', () => {
 			});
 			const request = createGraphQLServer(adapter);
 
+			const newInvite = { email: invite.email, metadata: invite.metadata, roleIDs: invite.roleIDs };
 			const result = await request({
 				document: gql(`
 					mutation SendInvite($input: CohortMemberInviteInput!) {
@@ -546,7 +547,7 @@ describe('Mutation', () => {
 					}
 				`),
 				variables: {
-					input: { email: invite.email, metadata: invite.metadata, roleIDs: invite.roleIDs },
+					input: newInvite,
 				},
 			});
 
@@ -563,7 +564,7 @@ describe('Mutation', () => {
 			expect(findInviteByEmail).toHaveBeenCalledWith(invite.email);
 			expect(findMemberByEmail).toHaveBeenCalledWith(invite.email);
 			expect(findRoleByID).toHaveBeenCalledWith(role.id);
-			expect(createInvite).toHaveBeenCalledWith(invite.email, invite.metadata);
+			expect(createInvite).toHaveBeenCalledWith(newInvite);
 			expect(sendInvite).toHaveBeenCalledWith(invite);
 		});
 

@@ -53,7 +53,11 @@ export const resolvers: Resolvers<ResolverContext> = {
 					throw new MemberAlreadySignedUpError(input.email);
 				}
 
-				const invite = await cohortAdapter.createInvite(input.email, input.metadata);
+				const invite = await cohortAdapter.createInvite({
+					email: input.email,
+					roleIDs: input.roleIDs ?? [],
+					metadata: input.metadata,
+				});
 
 				await wrapError(
 					cohortAdapter.sendInvite(invite),
