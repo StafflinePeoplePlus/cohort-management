@@ -12,6 +12,15 @@ export type CohortAdapter<AuthContext, Permission = string> = StorageAdapter &
 		 * However, it does not provide a way to recover from the error.
 		 */
 		onUnexpectedError(error: UnexpectedError): Promise<void> | void;
+
+		/**
+		 * Send an invite to the given email address. It is not strictly a requirement for the email to
+		 * be sent out immediately, you may choose to send it to a background job queue for example.
+		 *
+		 * It is up to the implementation to retry sending the invite if it fails, any errors thrown will
+		 * be logged but otherwise ignored.
+		 */
+		sendInvite(invite: Invite): Promise<void>;
 	};
 
 export type NewInvite = {
@@ -21,14 +30,6 @@ export type NewInvite = {
 };
 export type StorageAdapter = {
 	createInvite(newInvite: NewInvite): Promise<Invite>;
-	/**
-	 * Send an invite to the given email address. It is not strictly a requirement for the email to
-	 * be sent out immediately, you may choose to send it to a background job queue for example.
-	 *
-	 * It is up to the implementation to retry sending the invite if it fails, any errors thrown will
-	 * be logged but otherwise ignored.
-	 */
-	sendInvite(invite: Invite): Promise<void>;
 	/**
 	 * Revokes an invite that has been sent out but has not yet been accepted.
 	 *
