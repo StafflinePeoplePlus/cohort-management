@@ -33,6 +33,11 @@ type Mutation {
 	Remove role from the given member.
 	"""
 	cohortMemberRemoveRole(memberID: ID!, roleID: ID!): CohortMemberRoleChangeResult!
+
+	"""
+	Delete a cohort member.
+	"""
+	cohortDeleteMember(memberID: ID!): CohortMemberDeleteResult!
 }
 
 type Query {
@@ -260,4 +265,34 @@ interface CohortRole {
 }
 type CohortRoleList {
 	items: [CohortRole!]!
+}
+
+union CohortMemberDeleteResult = CohortMemberDelete | CohortMemberDeleteError
+type CohortMemberDelete {
+	"""
+	Details of the member that was deleted
+	"""
+	member: CohortMember!
+}
+type CohortMemberDeleteError {
+	"""
+	Reason why the deletion failed
+	"""
+	reason: CohortMemberDeleteErrorReason!
+
+	"""
+	Message possibly elaborating on the reason
+	"""
+	message: String!
+}
+enum CohortMemberDeleteErrorReason {
+	"""
+	Member with given ID was not found
+	"""
+	MEMBER_NOT_FOUND
+
+	"""
+	An unexpected error occurred
+	"""
+	UNEXPECTED
 }

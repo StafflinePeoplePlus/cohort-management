@@ -4,6 +4,7 @@ import type {
 	CohortRedeemMemberInviteError as GQLRedeemMemberInviteError,
 	CohortResendMemberInviteError as GQLResendMemberInviteError,
 	CohortMemberRoleChangeError as GQLCohortMemberRoleChangeError,
+	CohortMemberDeleteError as GQLCohortMemberDeleteError,
 } from './graphql/schemaTypes.js';
 
 export async function wrapError<T>(
@@ -220,6 +221,26 @@ export class MemberNotFoundForRoleChange extends RoleChangeError {
 	toGraphQL(): GQLCohortMemberRoleChangeError {
 		return {
 			__typename: 'CohortMemberRoleChangeError',
+			reason: 'MEMBER_NOT_FOUND',
+			message: this.message,
+		};
+	}
+}
+
+export abstract class MemberDeleteError extends Error {
+	abstract toGraphQL(): GQLCohortMemberDeleteError;
+}
+export class MemberNotFoundForDeletion extends MemberDeleteError {
+	constructor(
+		public memberID: string,
+		cause?: unknown,
+	) {
+		super(`A member with the ID \`${memberID}\` could not be found`, { cause });
+	}
+
+	toGraphQL(): GQLCohortMemberDeleteError {
+		return {
+			__typename: 'CohortMemberDeleteError',
 			reason: 'MEMBER_NOT_FOUND',
 			message: this.message,
 		};

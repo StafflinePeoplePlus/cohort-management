@@ -41,6 +41,28 @@ export type CohortMember = {
   id: Scalars['ID']['output'];
 };
 
+export type CohortMemberDelete = {
+  __typename?: 'CohortMemberDelete';
+  /** Details of the member that was deleted */
+  member: CohortMember;
+};
+
+export type CohortMemberDeleteError = {
+  __typename?: 'CohortMemberDeleteError';
+  /** Message possibly elaborating on the reason */
+  message: Scalars['String']['output'];
+  /** Reason why the deletion failed */
+  reason: CohortMemberDeleteErrorReason;
+};
+
+export type CohortMemberDeleteErrorReason =
+  /** Member with given ID was not found */
+  | 'MEMBER_NOT_FOUND'
+  /** An unexpected error occurred */
+  | 'UNEXPECTED';
+
+export type CohortMemberDeleteResult = CohortMemberDelete | CohortMemberDeleteError;
+
 export type CohortMemberInvite = {
   __typename?: 'CohortMemberInvite';
   email: Scalars['EmailAddress']['output'];
@@ -176,6 +198,8 @@ export type CohortRoleList = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Delete a cohort member. */
+  cohortDeleteMember: CohortMemberDeleteResult;
   /** Invite a new member by email address */
   cohortInviteMember: CohortMemberInviteResult;
   /** Add role to the given member. */
@@ -195,6 +219,11 @@ export type Mutation = {
    * after revocation.
    */
   cohortRevokeMemberInvite: CohortRevokeMemberInviteResult;
+};
+
+
+export type MutationCohortDeleteMemberArgs = {
+  memberID: Scalars['ID']['input'];
 };
 
 
@@ -320,6 +349,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
+  CohortMemberDeleteResult: ( CohortMemberDelete ) | ( CohortMemberDeleteError );
   CohortMemberInviteResult: ( CohortInviteMemberError ) | ( CohortMemberInvite );
   CohortMemberRoleChangeResult: ( CohortMemberRoleChange ) | ( CohortMemberRoleChangeError );
   CohortRedeemMemberInviteResult: ( CohortRedeemMemberInvite ) | ( CohortRedeemMemberInviteError );
@@ -339,6 +369,10 @@ export type ResolversTypes = {
   CohortInviteMemberError: ResolverTypeWrapper<CohortInviteMemberError>;
   CohortInviteMemberErrorReason: CohortInviteMemberErrorReason;
   CohortMember: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['CohortMember']>;
+  CohortMemberDelete: ResolverTypeWrapper<CohortMemberDelete>;
+  CohortMemberDeleteError: ResolverTypeWrapper<CohortMemberDeleteError>;
+  CohortMemberDeleteErrorReason: CohortMemberDeleteErrorReason;
+  CohortMemberDeleteResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CohortMemberDeleteResult']>;
   CohortMemberInvite: ResolverTypeWrapper<CohortMemberInvite>;
   CohortMemberInviteInput: CohortMemberInviteInput;
   CohortMemberInviteList: ResolverTypeWrapper<CohortMemberInviteList>;
@@ -375,6 +409,9 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CohortInviteMemberError: CohortInviteMemberError;
   CohortMember: ResolversInterfaceTypes<ResolversParentTypes>['CohortMember'];
+  CohortMemberDelete: CohortMemberDelete;
+  CohortMemberDeleteError: CohortMemberDeleteError;
+  CohortMemberDeleteResult: ResolversUnionTypes<ResolversParentTypes>['CohortMemberDeleteResult'];
   CohortMemberInvite: CohortMemberInvite;
   CohortMemberInviteInput: CohortMemberInviteInput;
   CohortMemberInviteList: CohortMemberInviteList;
@@ -411,6 +448,21 @@ export type CohortInviteMemberErrorResolvers<ContextType = any, ParentType exten
 export type CohortMemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMember'] = ResolversParentTypes['CohortMember']> = {
   __resolveType: TypeResolveFn<null, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
+export type CohortMemberDeleteResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberDelete'] = ResolversParentTypes['CohortMemberDelete']> = {
+  member?: Resolver<ResolversTypes['CohortMember'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortMemberDeleteErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberDeleteError'] = ResolversParentTypes['CohortMemberDeleteError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reason?: Resolver<ResolversTypes['CohortMemberDeleteErrorReason'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CohortMemberDeleteResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberDeleteResult'] = ResolversParentTypes['CohortMemberDeleteResult']> = {
+  __resolveType: TypeResolveFn<'CohortMemberDelete' | 'CohortMemberDeleteError', ParentType, ContextType>;
 };
 
 export type CohortMemberInviteResolvers<ContextType = any, ParentType extends ResolversParentTypes['CohortMemberInvite'] = ResolversParentTypes['CohortMemberInvite']> = {
@@ -506,6 +558,7 @@ export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  cohortDeleteMember?: Resolver<ResolversTypes['CohortMemberDeleteResult'], ParentType, ContextType, RequireFields<MutationCohortDeleteMemberArgs, 'memberID'>>;
   cohortInviteMember?: Resolver<ResolversTypes['CohortMemberInviteResult'], ParentType, ContextType, RequireFields<MutationCohortInviteMemberArgs, 'input'>>;
   cohortMemberAddRole?: Resolver<ResolversTypes['CohortMemberRoleChangeResult'], ParentType, ContextType, RequireFields<MutationCohortMemberAddRoleArgs, 'memberID' | 'roleID'>>;
   cohortMemberRemoveRole?: Resolver<ResolversTypes['CohortMemberRoleChangeResult'], ParentType, ContextType, RequireFields<MutationCohortMemberRemoveRoleArgs, 'memberID' | 'roleID'>>;
@@ -525,6 +578,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type Resolvers<ContextType = any> = {
   CohortInviteMemberError?: CohortInviteMemberErrorResolvers<ContextType>;
   CohortMember?: CohortMemberResolvers<ContextType>;
+  CohortMemberDelete?: CohortMemberDeleteResolvers<ContextType>;
+  CohortMemberDeleteError?: CohortMemberDeleteErrorResolvers<ContextType>;
+  CohortMemberDeleteResult?: CohortMemberDeleteResultResolvers<ContextType>;
   CohortMemberInvite?: CohortMemberInviteResolvers<ContextType>;
   CohortMemberInviteList?: CohortMemberInviteListResolvers<ContextType>;
   CohortMemberInviteResult?: CohortMemberInviteResultResolvers<ContextType>;

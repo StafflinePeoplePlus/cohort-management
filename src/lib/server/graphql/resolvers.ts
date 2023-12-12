@@ -22,6 +22,8 @@ import {
 	ResendMemberInviteError,
 	InviteNotFoundToResend,
 	ResendInviteFailed,
+	MemberDeleteError,
+	MemberNotFoundForDeletion,
 } from '../errors.js';
 import type { Resolvers } from './schemaTypes.js';
 
@@ -262,10 +264,42 @@ export const resolvers: Resolvers<ResolverContext> = {
 				}
 
 				await cohortAdapter.onUnexpectedError(
-					UnexpectedError.wrapForResolver('Mutation.cohortMemberAddRole', err),
+					UnexpectedError.wrapForResolver('Mutation.cohortMemberRemoveRole', err),
 				);
 				return {
 					__typename: 'CohortMemberRoleChangeError',
+					reason: 'UNEXPECTED',
+					message:
+						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
+				};
+			}
+		},
+		async cohortDeleteMember(_parent, { memberID }, ctx) {
+			const { cohortAdapter } = ctx;
+			try {
+				await assertAuth(ctx, [cohortAdapter.permissions.member.delete]);
+
+				const member = await cohortAdapter.findMemberByID(memberID);
+				if (member === undefined) {
+					throw new MemberNotFoundForDeletion(memberID);
+				}
+
+				await cohortAdapter.deleteMember(member);
+
+				return {
+					__typename: 'CohortMemberDelete',
+					member,
+				};
+			} catch (err) {
+				if (err instanceof MemberDeleteError) {
+					return err.toGraphQL();
+				}
+
+				await cohortAdapter.onUnexpectedError(
+					UnexpectedError.wrapForResolver('Mutation.cohortDeleteMember', err),
+				);
+				return {
+					__typename: 'CohortMemberDeleteError',
 					reason: 'UNEXPECTED',
 					message:
 						err instanceof UnexpectedError ? err.publicMessage : 'An unexpected error occurred',
