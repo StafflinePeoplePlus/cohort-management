@@ -14,7 +14,6 @@ jobs:
         with:
           node-version: lts/*
           check-latest: true
-          cache: 'npm'
       - run: npm i
       - run: npx changeset version --snapshot snapshot
       - run: npm run build

@@ -19,7 +19,6 @@ jobs:
         with:
           node-version: lts/*
           check-latest: true
-          cache: 'npm'
       - run: npm install
       - run: npm run format:check
   svelte-check:
@@ -32,7 +31,6 @@ jobs:
         with:
           node-version: lts/*
           check-latest: true
-          cache: 'npm'
       - run: npm install
       - run: npm run check
   lint:
@@ -45,7 +43,6 @@ jobs:
         with:
           node-version: lts/*
           check-latest: true
-          cache: 'npm'
       - run: npm install
       - run: npm run lint
   build:
@@ -58,6 +55,5 @@ jobs:
         with:
           node-version: lts/*
           check-latest: true
-          cache: 'npm'
       - run: npm install
       - run: npm run build

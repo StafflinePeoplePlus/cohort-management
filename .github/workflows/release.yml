@@ -16,7 +16,6 @@ jobs:
         with:
           node-version: lts/*
           check-latest: true
-          cache: 'npm'
       - run: npm install
       - name: Create Release Pull Request or Publish to npm
         id: changesets
