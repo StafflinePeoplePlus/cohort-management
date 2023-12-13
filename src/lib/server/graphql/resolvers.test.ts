@@ -40,6 +40,7 @@ function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAd
 		findMemberByID: mocks.findMemberByID ?? abort('findMemberByID'),
 		searchMembers: mocks.searchMembers ?? abort('searchMembers'),
 		listMembers: mocks.listMembers ?? abort('listMembers'),
+		deleteMember: mocks.deleteMember ?? abort('deleteMember'),
 		redeemInvite: mocks.redeemInvite ?? abort('redeemInvite'),
 		listRoles: mocks.listRoles ?? abort('listRoles'),
 		findRoleByID: mocks.findRoleByID ?? abort('findRoleByID'),
@@ -52,6 +53,7 @@ function createMockAdapter(mocks: Partial<CohortAdapter<AuthContext>>): CohortAd
 			},
 			member: {
 				read: faker.string.uuid(),
+				delete: faker.string.uuid(),
 			},
 			role: {
 				read: faker.string.uuid(),
@@ -1421,6 +1423,116 @@ describe('Mutation', () => {
 			expect(unassignRole).toHaveBeenCalledWith(member, role);
 		});
 	});
+
+	describe('cohortMemberDelete', () => {
+		test('requires member delete role', async () => {
+			const onUnexpectedError = vi.fn();
+			const authorize = vi.fn(() => Promise.resolve(false));
+			const adapter = createMockAdapter({
+				onUnexpectedError,
+				authorize,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation DeleteMember($memberID: ID!) {
+						cohortDeleteMember(memberID: $memberID) {
+							__typename
+							... on CohortMemberDeleteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortDeleteMember: {
+						__typename: 'CohortMemberDeleteError',
+						reason: 'UNEXPECTED',
+						message: `Missing permission(s) ${adapter.permissions.member.delete}`,
+					},
+				},
+			});
+			expect(authorize).toHaveBeenCalledWith({ userID: 'test' }, [
+				adapter.permissions.member.delete,
+			]);
+		});
+
+		test('handles member not found error', async () => {
+			const adapter = createMockAdapter({
+				findMemberByID: async () => undefined,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const memberID = faker.string.uuid();
+			const result = await request({
+				document: gql(`
+					mutation DeleteMember($memberID: ID!) {
+						cohortDeleteMember(memberID: $memberID) {
+							__typename
+							... on CohortMemberDeleteError {
+								reason
+								message
+							}
+						}
+					}
+				`),
+				variables: { memberID },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortDeleteMember: {
+						__typename: 'CohortMemberDeleteError',
+						reason: 'MEMBER_NOT_FOUND',
+						message: `A member with the ID \`${memberID}\` could not be found`,
+					},
+				},
+			});
+		});
+
+		test('tries to delete the member', async () => {
+			const member = fakeMember();
+			const deleteMember = vi.fn();
+			const adapter = createMockAdapter({
+				findMemberByID: async () => member,
+				deleteMember,
+			});
+			const request = createGraphQLServer(adapter);
+
+			const result = await request({
+				document: gql(`
+					mutation DeleteMember($memberID: ID!) {
+						cohortDeleteMember(memberID: $memberID) {
+							__typename
+							... on CohortMemberDelete {
+								member { id }
+							}
+						}
+					}
+				`),
+				variables: { memberID: member.id },
+			});
+
+			expect(result).toEqual({
+				data: {
+					cohortDeleteMember: {
+						__typename: 'CohortMemberDelete',
+						member: {
+							id: member.id,
+						},
+					},
+				},
+			});
+			expect(deleteMember).toHaveBeenCalledWith(member);
+		});
+	});
 });
 
 function fakeInvite(fields: Partial<PlainInvite> = {}) {
@@ -1439,4 +1551,8 @@ function fakeRole() {
 		name: faker.lorem.word(),
 		description: faker.lorem.sentence(),
 	};
+}
+
+function fakeMember() {
+	return CohortMember.create({ id: faker.string.uuid() });
 }

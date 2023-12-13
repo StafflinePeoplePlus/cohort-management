@@ -56,6 +56,7 @@ export type StorageAdapter = {
 	findMemberByID(id: string): Promise<CohortMember | undefined>;
 	searchMembers(query: string): Promise<CohortMember[]>;
 	listMembers(): Promise<CohortMember[]>;
+	deleteMember(member: CohortMember): Promise<void>;
 
 	listRoles(): Promise<CohortManagement.CohortRole[]>;
 	findRoleByID(id: string): Promise<CohortManagement.CohortRole | undefined>;
@@ -73,6 +74,7 @@ export type AuthAdapter<AuthContext, Permission = string> = {
 		};
 		member: {
 			read: Permission;
+			delete: Permission;
 		};
 		role: {
 			read: Permission;
