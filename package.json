@@ -109,7 +109,7 @@
 	},
 	"dependencies": {
 		"graphql": "^16.8.1",
-		"lucide-svelte": "^0.298.0",
+		"lucide-svelte": "^0.299.0",
 		"pp-svelte-components": "^0.0.35",
 		"tailwind-merge": "^2.1.0",
 		"type-fest": "^4.8.3"
