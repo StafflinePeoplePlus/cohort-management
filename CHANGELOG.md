@@ -1,5 +1,11 @@
 # @peopleplus/cohort-management
 
+## 0.3.0
+
+### Minor Changes
+
+- 46c63d6: remove default namespace definitions
+
 ## 0.2.1
 
 ### Patch Changes
