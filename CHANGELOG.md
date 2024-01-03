@@ -1,5 +1,11 @@
 # @peopleplus/cohort-management
 
+## 0.4.0
+
+### Minor Changes
+
+- 02d3474: update peopleplus components to v0.1.x
+
 ## 0.3.0
 
 ### Minor Changes
