@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { InviteListItem } from '$lib/client.js';
 	import { BanIcon, BracesIcon, SendIcon } from 'lucide-svelte';
-	import { DropdownMenuDivider, DropdownMenuItem } from 'pp-svelte-components';
+	import { DropdownMenuDivider, DropdownMenuItem } from '@peopleplus/components';
 
 	export let email: string;
 </script>

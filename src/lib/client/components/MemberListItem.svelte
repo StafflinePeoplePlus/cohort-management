@@ -6,7 +6,7 @@
 		Typography,
 		DropdownMenu,
 		createDropdownMenu,
-	} from 'pp-svelte-components';
+	} from '@peopleplus/components';
 	import { twMerge } from 'tailwind-merge';
 
 	let className: string | null | undefined = undefined;
