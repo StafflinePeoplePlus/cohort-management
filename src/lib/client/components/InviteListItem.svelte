@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { MailIcon, MoreHorizontalIcon } from 'lucide-svelte';
+	import MailIcon from 'lucide-svelte/icons/mail';
+	import MoreHorizontalIcon from 'lucide-svelte/icons/more-horizontal';
 	import { Button, Typography, DropdownMenu, createDropdownMenu } from '@peopleplus/components';
 	import { twMerge } from 'tailwind-merge';
 
