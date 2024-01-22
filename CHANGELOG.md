@@ -1,5 +1,11 @@
 # @peopleplus/cohort-management
 
+## 0.4.1
+
+### Patch Changes
+
+- 5ed79ff: import lucide icons directly for faster build times
+
 ## 0.4.0
 
 ### Minor Changes
