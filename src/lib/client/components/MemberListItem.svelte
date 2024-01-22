@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MoreHorizontalIcon } from 'lucide-svelte';
+	import MoreHorizontalIcon from 'lucide-svelte/icons/more-horizontal';
 	import {
 		Avatar,
 		Button,
