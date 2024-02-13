@@ -71,9 +71,9 @@
 		"@changesets/cli": "^2.27.1",
 		"@faker-js/faker": "^8.3.1",
 		"@graphql-codegen/add": "^5.0.0",
-		"@graphql-codegen/cli": "5.0.0",
-		"@graphql-codegen/typescript": "4.0.1",
-		"@graphql-codegen/typescript-resolvers": "4.0.1",
+		"@graphql-codegen/cli": "5.0.2",
+		"@graphql-codegen/typescript": "4.0.4",
+		"@graphql-codegen/typescript-resolvers": "4.0.4",
 		"@graphql-tools/executor-http": "^1.0.5",
 		"@storybook/addon-essentials": "^7.6.4",
 		"@storybook/addon-interactions": "^7.6.4",
@@ -109,7 +109,7 @@
 	},
 	"dependencies": {
 		"graphql": "^16.8.1",
-		"lucide-svelte": "^0.320.0",
+		"lucide-svelte": "^0.330.0",
 		"@peopleplus/components": "^0.1.0",
 		"tailwind-merge": "^2.1.0",
 		"type-fest": "^4.8.3"
