@@ -8,9 +8,9 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
-		"strict": true,
+		"strict": true
 		// This causes just some really weird issue with module resolution in VSCode
 		// "module": "NodeNext",
 		// "moduleResolution": "NodeNext"
-	},
+	}
 }
