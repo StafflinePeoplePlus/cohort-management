@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MoreHorizontalIcon from 'lucide-svelte/icons/more-horizontal';
+	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
 	import {
 		Avatar,
 		Button,
@@ -34,7 +34,7 @@
 	</svelte:element>
 	{#if $$slots.actions}
 		<Button type="button" variant="secondary" icon class="h-8 w-8" use={[trigger]}>
-			<MoreHorizontalIcon aria-hidden="true" />
+			<EllipsisVerticalIcon aria-hidden="true" />
 			<span class="sr-only">View Actions</span>
 		</Button>
 	{/if}
