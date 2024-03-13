@@ -1,5 +1,11 @@
 # @peopleplus/cohort-management
 
+## 0.4.2
+
+### Patch Changes
+
+- 0ebb03a: fix error importing renamed icon from lucide svelte
+
 ## 0.4.1
 
 ### Patch Changes
