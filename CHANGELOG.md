@@ -1,5 +1,11 @@
 # @peopleplus/cohort-management
 
+## 0.4.3
+
+### Patch Changes
+
+- eb46f5a: Bump peopleplus/components to include renamed lucide-svelte icon paths
+
 ## 0.4.2
 
 ### Patch Changes
