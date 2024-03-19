@@ -76,7 +76,7 @@
 		"@graphql-codegen/typescript-resolvers": "4.0.6",
 		"@graphql-tools/executor-http": "^1.0.5",
 		"@storybook/addon-essentials": "^7.6.4",
-		"@storybook/addon-interactions": "^7.6.4",
+		"@storybook/addon-interactions": "^8.0.1",
 		"@storybook/addon-links": "^7.6.4",
 		"@storybook/blocks": "^7.6.3",
 		"@storybook/svelte": "^7.6.4",
