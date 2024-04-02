@@ -80,7 +80,7 @@
 		"@storybook/addon-links": "^7.6.4",
 		"@storybook/blocks": "^7.6.3",
 		"@storybook/svelte": "^7.6.4",
-		"@storybook/sveltekit": "^7.6.4",
+		"@storybook/sveltekit": "^8.0.5",
 		"@storybook/testing-library": "^0.2.2",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
