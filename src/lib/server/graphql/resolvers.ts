@@ -68,7 +68,7 @@ export const resolvers: Resolvers<ResolverContext> = {
 				});
 
 				await wrapError(
-					cohortAdapter.sendInvite(invite),
+					cohortAdapter.sendInvite(invite, ctx),
 					(cause) => new SendInviteFailed(invite.id, input.email, cause),
 				);
 
@@ -175,7 +175,7 @@ export const resolvers: Resolvers<ResolverContext> = {
 				}
 
 				await wrapError(
-					cohortAdapter.sendInvite(invite),
+					cohortAdapter.sendInvite(invite, ctx),
 					(cause) => new ResendInviteFailed(inviteID, cause),
 				);
 

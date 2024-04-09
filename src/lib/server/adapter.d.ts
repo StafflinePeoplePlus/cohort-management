@@ -20,7 +20,7 @@ export type CohortAdapter<AuthContext, Permission = string> = StorageAdapter &
 		 * It is up to the implementation to retry sending the invite if it fails, any errors thrown will
 		 * be logged but otherwise ignored.
 		 */
-		sendInvite(invite: Invite): Promise<void>;
+		sendInvite(invite: Invite, ctx: ResolverContext): Promise<void>;
 	};
 
 export type NewInvite = {
