@@ -580,7 +580,7 @@ describe('Mutation', () => {
 			expect(findMemberByEmail).toHaveBeenCalledWith(invite.email);
 			expect(findRoleByID).toHaveBeenCalledWith(role.id);
 			expect(createInvite).toHaveBeenCalledWith(newInvite);
-			expect(sendInvite).toHaveBeenCalledWith(invite);
+			expect(sendInvite).toHaveBeenNthCalledWith(1, invite);
 		});
 
 		test('returns graceful error when member is already invited', async () => {
@@ -1058,7 +1058,7 @@ describe('Mutation', () => {
 				},
 			});
 			expect(findInviteByID).toHaveBeenCalledWith(invite.id);
-			expect(sendInvite).toHaveBeenCalledWith(invite);
+			expect(sendInvite).toHaveBeenNthCalledWith(1, invite);
 		});
 
 		test('handles unexpected errors', async () => {
