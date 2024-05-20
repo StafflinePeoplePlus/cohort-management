@@ -6,11 +6,14 @@
 	export let email: string;
 </script>
 
-<MemberListItem {name} {email} {...$$restProps}>
-	<svelte:fragment slot="actions">
-		<DropdownMenuItem>View Details</DropdownMenuItem>
-		<DropdownMenuItem>Edit Details</DropdownMenuItem>
-		<DropdownMenuDivider />
-		<DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
-	</svelte:fragment>
-</MemberListItem>
+<MemberListItem
+	{name}
+	{email}
+	actions={[
+		{ type: 'link', href: '#', label: 'View Details', variant: 'default' },
+		{ type: 'link', href: '#', label: 'Edit Details', variant: 'default' },
+		{ type: 'divider' },
+		{ type: 'link', href: '#', label: 'Delete', variant: 'danger' },
+	]}
+	{...$$restProps}
+/>

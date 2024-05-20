@@ -8,20 +8,13 @@
 	export let email: string;
 </script>
 
-<InviteListItem {email} {...$$restProps}>
-	<svelte:fragment slot="actions">
-		<DropdownMenuItem variant="primary">
-			<SendIcon size={16} />
-			Resend
-		</DropdownMenuItem>
-		<DropdownMenuItem>
-			<BracesIcon size={16} />
-			View Metadata
-		</DropdownMenuItem>
-		<DropdownMenuDivider />
-		<DropdownMenuItem variant="danger">
-			<BanIcon size={16} />
-			Revoke
-		</DropdownMenuItem>
-	</svelte:fragment>
-</InviteListItem>
+<InviteListItem
+	{email}
+	actions={[
+		{ type: 'action', label: 'Resend', variant: 'primary', action: () => null },
+		{ type: 'action', label: 'View Metadata', variant: 'default', action: () => null },
+		{ type: 'divider' },
+		{ type: 'action', label: 'Revoke', variant: 'danger', action: () => null },
+	]}
+	{...$$restProps}
+/>

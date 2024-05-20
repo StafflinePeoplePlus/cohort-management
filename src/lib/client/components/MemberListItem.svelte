@@ -6,8 +6,11 @@
 		Typography,
 		DropdownMenu,
 		createDropdownMenu,
+		DropdownMenuItem,
+		DropdownMenuDivider,
 	} from '@peopleplus/components';
 	import { twMerge } from 'tailwind-merge';
+	import type { ComponentType } from 'svelte';
 
 	let className: string | null | undefined = undefined;
 	export { className as class };
@@ -15,6 +18,26 @@
 	export let name: string;
 	export let email: string;
 	export let avatar: string | null | undefined = undefined;
+
+	export let actions:
+		| (
+				| {
+						type: 'link';
+						href: string;
+						label: string;
+						icon?: ComponentType;
+						variant: 'default' | 'danger' | 'primary';
+				  }
+				| { type: 'divider' }
+				| {
+						type: 'action';
+						label: string;
+						action: () => void;
+						icon?: ComponentType;
+						variant: 'default' | 'danger' | 'primary';
+				  }
+		  )[]
+		| undefined = undefined;
 
 	const { trigger, menu } = createDropdownMenu();
 </script>
@@ -32,7 +55,7 @@
 			<Typography variant="caption">{email}</Typography>
 		</div>
 	</svelte:element>
-	{#if $$slots.actions}
+	{#if actions}
 		<Button type="button" variant="secondary" icon class="h-8 w-8" use={[trigger]}>
 			<EllipsisVerticalIcon aria-hidden="true" />
 			<span class="sr-only">View Actions</span>
@@ -40,6 +63,26 @@
 	{/if}
 </div>
 
-{#if $$slots.actions}
-	<DropdownMenu {menu}><slot name="actions" /></DropdownMenu>
+{#if actions}
+	<DropdownMenu {menu}>
+		{#each actions as action}
+			{#if action.type === 'divider'}
+				<DropdownMenuDivider />
+			{:else if action.type === 'link'}
+				<DropdownMenuItem href={action.href}>
+					{#if action.icon}
+						<svelte:component this={action.icon} size={16} />
+					{/if}
+					{action.label}
+				</DropdownMenuItem>
+			{:else if action.type === 'action'}
+				<DropdownMenuItem on:click={action.action}>
+					{#if action.icon}
+						<svelte:component this={action.icon} size={16} />
+					{/if}
+					{action.label}
+				</DropdownMenuItem>
+			{/if}
+		{/each}
+	</DropdownMenu>
 {/if}
