@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { MemberListItem } from '$lib/client.js';
-	import { DropdownMenuDivider, DropdownMenuItem } from '@peopleplus/components';
 
 	export let name: string;
 	export let email: string;
