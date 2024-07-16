@@ -1,5 +1,11 @@
 # @peopleplus/cohort-management
 
+## 0.5.0
+
+### Minor Changes
+
+- 3222816: update @peopleplus/components to 0.6
+
 ## 0.4.4
 
 ### Patch Changes
