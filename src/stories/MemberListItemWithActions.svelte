@@ -5,7 +5,7 @@
 	interface Props {
 		name: string;
 		email: string;
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { name, email, ...rest }: Props = $props();
@@ -13,11 +13,9 @@
 
 <MemberListItem {name} {email} {...rest}>
 	{#snippet actions()}
-	
-			<DropdownMenuItem>View Details</DropdownMenuItem>
-			<DropdownMenuItem>Edit Details</DropdownMenuItem>
-			<DropdownMenuDivider />
-			<DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
-		
+		<DropdownMenuItem>View Details</DropdownMenuItem>
+		<DropdownMenuItem>Edit Details</DropdownMenuItem>
+		<DropdownMenuDivider />
+		<DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
 	{/snippet}
 </MemberListItem>

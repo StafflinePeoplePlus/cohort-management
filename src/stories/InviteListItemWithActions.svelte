@@ -7,7 +7,7 @@
 
 	interface Props {
 		email: string;
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { email, ...rest }: Props = $props();
@@ -15,20 +15,18 @@
 
 <InviteListItem {email} {...rest}>
 	{#snippet actions()}
-	
-			<DropdownMenuItem variant="primary">
-				<SendIcon size={16} />
-				Resend
-			</DropdownMenuItem>
-			<DropdownMenuItem>
-				<BracesIcon size={16} />
-				View Metadata
-			</DropdownMenuItem>
-			<DropdownMenuDivider />
-			<DropdownMenuItem variant="danger">
-				<BanIcon size={16} />
-				Revoke
-			</DropdownMenuItem>
-		
+		<DropdownMenuItem variant="primary">
+			<SendIcon size={16} />
+			Resend
+		</DropdownMenuItem>
+		<DropdownMenuItem>
+			<BracesIcon size={16} />
+			View Metadata
+		</DropdownMenuItem>
+		<DropdownMenuDivider />
+		<DropdownMenuItem variant="danger">
+			<BanIcon size={16} />
+			Revoke
+		</DropdownMenuItem>
 	{/snippet}
 </InviteListItem>

@@ -4,7 +4,6 @@
 	import { Button, Typography, DropdownMenu, createDropdownMenu } from '@peopleplus/components';
 	import { twMerge } from 'tailwind-merge';
 
-	
 	interface Props {
 		class?: string | null | undefined;
 		href?: string | null | undefined;
@@ -12,12 +11,7 @@
 		actions?: import('svelte').Snippet;
 	}
 
-	let {
-		class: className = undefined,
-		href = undefined,
-		email,
-		actions
-	}: Props = $props();
+	let { class: className = undefined, href = undefined, email, actions }: Props = $props();
 
 	const { trigger, menu } = createDropdownMenu();
 </script>
