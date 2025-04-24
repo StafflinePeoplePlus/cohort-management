@@ -69,6 +69,8 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.1",
+		"@eslint/eslintrc": "^3.3.1",
+		"@eslint/js": "^9.25.1",
 		"@faker-js/faker": "^9.0.2",
 		"@graphql-codegen/add": "^5.0.0",
 		"@graphql-codegen/cli": "5.0.5",
@@ -90,6 +92,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-storybook": "^9.0.0-beta.1",
 		"eslint-plugin-svelte": "^3.5.1",
+		"globals": "^16.0.0",
 		"graphql-yoga": "^5.0.2",
 		"postcss": "^8.4.32",
 		"prettier": "~3.5.3",
