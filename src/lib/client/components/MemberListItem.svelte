@@ -9,7 +9,6 @@
 	} from '@peopleplus/components';
 	import { twMerge } from 'tailwind-merge';
 
-	
 	interface Props {
 		class?: string | null | undefined;
 		href?: string | null | undefined;
@@ -25,7 +24,7 @@
 		name,
 		email,
 		avatar = undefined,
-		actions
+		actions,
 	}: Props = $props();
 
 	const { trigger, menu } = createDropdownMenu();

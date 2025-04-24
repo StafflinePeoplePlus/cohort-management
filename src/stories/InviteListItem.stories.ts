@@ -1,5 +1,5 @@
 import { InviteListItem } from '$lib/client.js';
-import type { Meta, StoryObj } from '@storybook/svelte';
+import type { Meta, StoryObj } from '@storybook/sveltekit';
 import { faker } from '@faker-js/faker/locale/en_GB';
 import InviteListItemWithActions from './InviteListItemWithActions.svelte';
 
@@ -14,13 +14,16 @@ const meta = {
 	args: {
 		email: faker.internet.exampleEmail(),
 	},
-} satisfies Meta<InviteListItem>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<{ email: string }>;
 
 export const Default: Story = {};
 
 export const WithActions: Story = {
-	render: (args) => ({ Component: InviteListItemWithActions, props: args }),
+	render: (args) => ({
+		Component: InviteListItemWithActions,
+		props: args,
+	}),
 };
