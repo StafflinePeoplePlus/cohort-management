@@ -9,12 +9,23 @@
 	} from '@peopleplus/components';
 	import { twMerge } from 'tailwind-merge';
 
-	let className: string | null | undefined = undefined;
-	export { className as class };
-	export let href: string | null | undefined = undefined;
-	export let name: string;
-	export let email: string;
-	export let avatar: string | null | undefined = undefined;
+	interface Props {
+		class?: string | null | undefined;
+		href?: string | null | undefined;
+		name: string;
+		email: string;
+		avatar?: string | null | undefined;
+		actions?: import('svelte').Snippet;
+	}
+
+	let {
+		class: className = undefined,
+		href = undefined,
+		name,
+		email,
+		avatar = undefined,
+		actions,
+	}: Props = $props();
 
 	const { trigger, menu } = createDropdownMenu();
 </script>
@@ -32,7 +43,7 @@
 			<Typography variant="caption">{email}</Typography>
 		</div>
 	</svelte:element>
-	{#if $$slots.actions}
+	{#if actions}
 		<Button type="button" variant="secondary" icon class="h-8 w-8" use={[trigger]}>
 			<EllipsisVerticalIcon aria-hidden="true" />
 			<span class="sr-only">View Actions</span>
@@ -40,6 +51,6 @@
 	{/if}
 </div>
 
-{#if $$slots.actions}
-	<DropdownMenu {menu}><slot name="actions" /></DropdownMenu>
+{#if actions}
+	<DropdownMenu {menu}>{@render actions?.()}</DropdownMenu>
 {/if}

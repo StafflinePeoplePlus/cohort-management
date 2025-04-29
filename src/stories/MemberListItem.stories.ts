@@ -1,5 +1,5 @@
 import { MemberListItem } from '$lib/client.js';
-import type { Meta, StoryObj } from '@storybook/svelte';
+import type { Meta, StoryObj } from '@storybook/sveltekit';
 import MemberListItemWithActions from './MemberListItemWithActions.svelte';
 import { faker } from '@faker-js/faker/locale/en_GB';
 
@@ -17,10 +17,10 @@ const meta = {
 		name: faker.person.fullName(),
 		email: faker.internet.exampleEmail(),
 	},
-} satisfies Meta<MemberListItem>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<{ email: string; name: string }>;
 
 export const Default: Story = {};
 

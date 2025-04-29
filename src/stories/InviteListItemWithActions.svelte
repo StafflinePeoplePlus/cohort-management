@@ -5,11 +5,18 @@
 	import SendIcon from 'lucide-svelte/icons/send';
 	import { DropdownMenuDivider, DropdownMenuItem } from '@peopleplus/components';
 
-	export let email: string;
+	interface Props {
+		email: string;
+
+		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+		[key: string]: any;
+	}
+
+	let { email, ...rest }: Props = $props();
 </script>
 
-<InviteListItem {email} {...$$restProps}>
-	<svelte:fragment slot="actions">
+<InviteListItem {email} {...rest}>
+	{#snippet actions()}
 		<DropdownMenuItem variant="primary">
 			<SendIcon size={16} />
 			Resend
@@ -23,5 +30,5 @@
 			<BanIcon size={16} />
 			Revoke
 		</DropdownMenuItem>
-	</svelte:fragment>
+	{/snippet}
 </InviteListItem>
