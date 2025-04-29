@@ -1,5 +1,13 @@
 # @peopleplus/cohort-management
 
+## 0.5.1
+
+### Patch Changes
+
+- a42a3db: Update storybook to 9.0.0-beta.1 and refactor stories
+- 53ec4db: Move tests to node js 20.x and 22.x
+- 9f7bcdc: Migrate to svelte 5
+
 ## 0.5.0
 
 ### Minor Changes
