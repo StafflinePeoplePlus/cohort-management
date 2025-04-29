@@ -1,5 +1,24 @@
 # @peopleplus/cohort-management
 
+## 0.6.1
+
+### Minor Changes
+
+- a42a3db: Update storybook to 9.0.0-beta.1 and refactor stories
+- 9f7bcdc: Migrate to svelte 5
+
+### Patch Changes
+
+- 53ec4db: Move tests to node js 20.x and 22.x
+- 0fcbe86: Bump tailwind-merge from 2.6.0 to 3.2.0
+- 850a1e8: Bump eslint-config-prettier from 9.1.0 to 10.1.2
+- 7377e82: Bump @sveltejs/adapter-auto from 3.3.1 to 6.0.0
+- ddc68cd: Bump tailwindcss from 3.4.17 to 4.1.4
+- e1ba2df: Bump prettier from 3.4.2 to 3.5.3
+- a1be4ab: Bump @graphql-tools/executor-http from 1.3.3 to 2.0.0
+- 48d339c: Bump prettier-plugin-svelte from 3.2.8 to 3.3.3
+- daaebb0: Bump prettier from 3.3.3 to 3.4.2
+
 ## 0.5.0
 
 ### Minor Changes
