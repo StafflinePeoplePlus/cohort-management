@@ -108,9 +108,9 @@
 		"vitest": "^3.1.2"
 	},
 	"dependencies": {
-		"@peopleplus/components": "^0.0.0-snapshot-20250424104414",
+		"@peopleplus/components": "^0.7.0",
 		"graphql": "^16.8.1",
-		"lucide-svelte": "^0.503.0",
+		"lucide-svelte": "^0.506.0",
 		"tailwind-merge": "^3.2.0",
 		"type-fest": "^4.8.3"
 	},
