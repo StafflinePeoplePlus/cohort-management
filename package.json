@@ -96,7 +96,7 @@
 		"graphql-yoga": "^5.0.2",
 		"postcss": "^8.4.32",
 		"prettier": "~3.5.3",
-		"prettier-plugin-svelte": "~3.3.3",
+		"prettier-plugin-svelte": "~3.4.0",
 		"publint": "^0.3.0",
 		"storybook": "^9.0.0-beta.1",
 		"svelte": "^5.28.2",
